@@ -2,6 +2,8 @@
 FROM quay.io/fedora/fedora:39-ppc64le AS BUILD
 #FROM --platform=$BUILDPLATFORM golang:1.21-alpine AS BUILD
 
+RUN chmod 0644 /etc/passwd
+#RUN echo "nonroot-user:x:1001:1001:nonroot-user:/home/nonroot-user:/bin/bash" >> /etc/passwd
 #RUN groupadd -g 0 root
 RUN groupadd -g 107 qemu
 RUN echo "root:x:0:0:root:/root:/bin/bash" >> /etc/passwd
@@ -9,7 +11,8 @@ RUN echo "qemu:x:107:107:qemu:/:/bin/bash" >> /etc/passwd
 COPY virt-handler /usr/bin/virt-handler
 COPY virt-chroot /usr/bin/virt-chroot
 COPY nsswitch.conf /etc/nsswitch.conf
-COPY virt_launcher.cil /root/virt_launcher.cil
+COPY virt_launcher.cil /virt_launcher.cil
+COPY container-disk /usr/bin/container-disk
 
 RUN dnf install -y acl \
 		alternatives \
@@ -118,4 +121,7 @@ RUN dnf install -y acl \
 		vim-minimal xorriso \
 		xz-libs zlib
 
+RUN mkdir -p /var/lib/kubevirt/init
 ENTRYPOINT [ "/usr/bin/virt-handler" ]
+#USER 1001
+#RUN /usr/bin/ls

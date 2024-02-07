@@ -4,7 +4,7 @@ set -xeo pipefail
 
 ARCH=$(uname -m)
 MACHINE=q35
-if [ "$ARCH" == "aarch64" ]; then
+if [ "$ARCH" == "ppc64le" ]; then
   MACHINE=virt
 elif [ "$ARCH" == "s390x" ]; then
   MACHINE=s390-ccw-virtio

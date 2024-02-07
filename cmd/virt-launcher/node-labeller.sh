@@ -6,6 +6,8 @@ ARCH=$(uname -m)
 MACHINE=q35
 if [ "$ARCH" == "aarch64" ]; then
   MACHINE=virt
+elif [ "$ARCH" == "ppc64le" ]; then
+  MACHINE=pseries-8.1
 elif [ "$ARCH" != "x86_64" ]; then
   exit 0
 fi

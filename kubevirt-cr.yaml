@@ -11,5 +11,6 @@ spec:
     developerConfiguration:
       featureGates: []
   customizeComponents: {}
-  imagePullPolicy: IfNotPresent
+  imagePullPolicy: Always
   workloadUpdateStrategy: {}
+
