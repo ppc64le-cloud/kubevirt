@@ -1,0 +1,45 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: testvmfedoramem
+spec:
+  runStrategy: Manual
+  template:
+    metadata:
+      labels:
+        kubevirt.io/size: large
+        kubevirt.io/domain: testvm
+    spec:
+      architecture: ppc64le
+      domain:
+        features:
+          acpi:
+            enabled: false
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: default
+            masquerade: {}
+        machine:
+          type: pseries
+        cpu:
+          model: host-passthrough
+        resources:
+          requests:
+            memory: 12G
+      networks:
+      - name: default
+        pod: {}
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/powercloud/cirros-container-disk-demo:fedora
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userDataBase64: SGkuXG4=
