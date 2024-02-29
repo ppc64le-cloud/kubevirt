@@ -133,12 +133,12 @@ We need supported binary files here so will build the image if already created t
 #############################################################################################
 #############################################################################################
 
-## Create container image from the Dockerfile
+## Create container disk image from the Dockerfile
 
 * `cd containerimages/`
 * Modify the Dockerfile with the proper image location/name. Which will copy to the /disk/ location.
 
-* Dockerfile has a content of disk image which will be added to /disk/ location . it can be Fedora/cirros images which is requered to user. 
-* Run the command to build the imaage - `docker buildx build --platform=linux/ppc64le . -t quay.io/powercloud/<image name>`. Here we are using `quay.io/powercloud` as image repository.
+* Dockerfile has a content of disk image which will be added to /disk/ location. It can be Fedora/CirrOS image which is required for the user. 
+* Run the command to build the image - `docker buildx build --platform=linux/ppc64le . -t quay.io/powercloud/<image name>`. Here we are using `quay.io/powercloud` as image repository.
 * Then upload the image to the same repository using the comamnd `docker push <image reposiroty location>`
 
