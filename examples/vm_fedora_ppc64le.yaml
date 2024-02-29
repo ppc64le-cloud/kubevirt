@@ -36,6 +36,16 @@ spec:
       networks:
       - name: default
         pod: {}
+      terminationGracePeriodSeconds: 0
+      accessCredentials:
+      - sshPublicKey:
+          source:
+            secret:
+              secretName: my-pub-key
+          propagationMethod:
+            qemuGuestAgent:
+              users:
+              - fedora
       volumes:
         - name: containerdisk
           containerDisk:
