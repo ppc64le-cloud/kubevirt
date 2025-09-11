@@ -48,7 +48,7 @@ This will create the binary file virt-operator in the same directory.
 * go build .
 * cp csv-generator ../../cmd/virt-operator/
 
-This will create the csv-generator and copy to /usr/bin/
+This will create the csv-generator and copy to cmd/virt-operator
 
 ### Create image using the binary
 
