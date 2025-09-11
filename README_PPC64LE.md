@@ -44,6 +44,12 @@ Steps:
 
 This will create the binary file virt-operator in the same directory.
 
+* cd tools/csv-generator/
+* go build .
+* cp csv-generator /usr/bin/csv-generator
+
+This will create the csv-generator and copy to /usr/bin/
+
 ### Create image using the binary
 
 * Dockerfile has a content to copy the binary file to /usr/bin/virt-operator and making as entry point .
