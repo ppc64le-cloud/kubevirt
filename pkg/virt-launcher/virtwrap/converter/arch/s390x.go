@@ -18,6 +18,9 @@ package arch
 
 import (
 	v1 "kubevirt.io/api/core/v1"
+
+	"kubevirt.io/kubevirt/pkg/pointer"
+	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
 )
 
 // Ensure that there is a compile error should the struct not implement the archConverter interface anymore.
@@ -31,6 +34,19 @@ func (converterS390X) GetArchitecture() string {
 
 func (converterS390X) SCSIControllerModel(_ string) string {
 	return "virtio-scsi"
+}
+
+func (converterS390X) AddGraphicsDevice(_ *v1.VirtualMachineInstance, domain *api.Domain, _ bool) {
+	// S390X typically doesn't use graphics devices, but we provide a minimal implementation
+	domain.Spec.Devices.Video = []api.Video{
+		{
+			Model: api.VideoModel{
+				Type:  "vga",
+				Heads: pointer.P(graphicsDeviceDefaultHeads),
+				VRam:  pointer.P(graphicsDeviceDefaultVRAM),
+			},
+		},
+	}
 }
 
 func (converterS390X) IsUSBNeeded(_ *v1.VirtualMachineInstance) bool {

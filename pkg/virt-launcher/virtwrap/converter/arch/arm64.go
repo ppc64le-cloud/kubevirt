@@ -18,6 +18,9 @@ package arch
 
 import (
 	v1 "kubevirt.io/api/core/v1"
+
+	"kubevirt.io/kubevirt/pkg/pointer"
+	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
 )
 
 // Ensure that there is a compile error should the struct not implement the archConverter interface anymore.
@@ -31,6 +34,18 @@ func (converterARM64) GetArchitecture() string {
 
 func (converterARM64) SCSIControllerModel(model string) string {
 	return model
+}
+
+func (converterARM64) AddGraphicsDevice(_ *v1.VirtualMachineInstance, domain *api.Domain, _ bool) {
+	domain.Spec.Devices.Video = []api.Video{
+		{
+			Model: api.VideoModel{
+				Type:  "vga",
+				Heads: pointer.P(graphicsDeviceDefaultHeads),
+				VRam:  pointer.P(graphicsDeviceDefaultVRAM),
+			},
+		},
+	}
 }
 
 func (converterARM64) IsUSBNeeded(_ *v1.VirtualMachineInstance) bool {
@@ -71,5 +86,5 @@ func (converterARM64) SupportPCIHole64Disabling() bool {
 }
 
 func (converterARM64) SupportPCIePlacement() bool {
-	return true
+	return false
 }

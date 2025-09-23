@@ -19,6 +19,8 @@ package arch
 import (
 	v1 "kubevirt.io/api/core/v1"
 
+	"kubevirt.io/kubevirt/pkg/pointer"
+	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
 	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/device"
 )
 
@@ -33,6 +35,22 @@ func (converterAMD64) GetArchitecture() string {
 
 func (converterAMD64) SCSIControllerModel(model string) string {
 	return model
+}
+
+func (converterAMD64) AddGraphicsDevice(_ *v1.VirtualMachineInstance, domain *api.Domain, bochsForEFI bool) {
+	videoModel := "vga"
+	if bochsForEFI {
+		videoModel = "bochs"
+	}
+	domain.Spec.Devices.Video = []api.Video{
+		{
+			Model: api.VideoModel{
+				Type:  videoModel,
+				Heads: pointer.P(graphicsDeviceDefaultHeads),
+				VRam:  pointer.P(graphicsDeviceDefaultVRAM),
+			},
+		},
+	}
 }
 
 func (converterAMD64) IsUSBNeeded(vmi *v1.VirtualMachineInstance) bool {
