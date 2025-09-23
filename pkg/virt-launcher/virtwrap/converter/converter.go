@@ -47,6 +47,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/emptydisk"
 	hostdisk "kubevirt.io/kubevirt/pkg/host-disk"
 	"kubevirt.io/kubevirt/pkg/hypervisor"
+	"kubevirt.io/kubevirt/pkg/ignition"
 	netvmispec "kubevirt.io/kubevirt/pkg/network/vmispec"
 	"kubevirt.io/kubevirt/pkg/os/disk"
 	"kubevirt.io/kubevirt/pkg/pointer"
@@ -1160,6 +1161,79 @@ func Convert_v1_VirtualMachineInstance_To_api_Domain(vmi *v1.VirtualMachineInsta
 			Model:  virtio.InterpretTransitionalModelType(&c.UseVirtioTransitional, c.Architecture.GetArchitecture()),
 			Driver: controllerDriver,
 		})
+		var serialPort uint = 0
+		var serialType string = "serial"
+		domain.Spec.Devices.Consoles = []api.Console{
+			{
+				Type: "pty",
+				Target: &api.ConsoleTarget{
+					Type: &serialType,
+					Port: &serialPort,
+				},
+			},
+		}
+
+		socketPath := fmt.Sprintf("%s/%s/virt-serial%d", util.VirtPrivateDir, vmi.ObjectMeta.UID, serialPort)
+		domain.Spec.Devices.Serials = []api.Serial{
+			{
+				Type: "unix",
+				Target: &api.SerialTarget{
+					Port: &serialPort,
+				},
+				Source: &api.SerialSource{
+					Mode: "bind",
+					Path: socketPath,
+				},
+			},
+		}
+
+		if c.SerialConsoleLog {
+			domain.Spec.Devices.Serials[0].Log = &api.SerialLog{
+				File:   fmt.Sprintf("%s-log", socketPath),
+				Append: "on",
+			}
+		}
+
+	}
+
+	if vmi.Spec.Domain.Devices.AutoattachGraphicsDevice == nil || *vmi.Spec.Domain.Devices.AutoattachGraphicsDevice {
+		c.Architecture.AddGraphicsDevice(vmi, domain, c.BochsForEFIGuests && vmi.IsBootloaderEFI())
+		if vmi.Spec.Domain.Devices.Video != nil {
+			video := api.Video{
+				Model: api.VideoModel{
+					Type:  vmi.Spec.Domain.Devices.Video.Type,
+					VRam:  pointer.P(uint(16384)),
+					Heads: pointer.P(uint(1)),
+				},
+			}
+			domain.Spec.Devices.Video = []api.Video{video}
+		}
+		domain.Spec.Devices.Graphics = []api.Graphics{
+			{
+				Listen: &api.GraphicsListen{
+					Type:   "socket",
+					Socket: fmt.Sprintf("/var/run/kubevirt-private/%s/virt-vnc", vmi.ObjectMeta.UID),
+				},
+				Type: "vnc",
+			},
+		}
+	}
+
+	domainInterfaces, err := CreateDomainInterfaces(vmi, c)
+	if err != nil {
+		return err
+	}
+	domain.Spec.Devices.Interfaces = append(domain.Spec.Devices.Interfaces, domainInterfaces...)
+	domain.Spec.Devices.HostDevices = append(domain.Spec.Devices.HostDevices, c.SRIOVDevices...)
+
+	// Add Ignition Command Line if present
+	ignitiondata := vmi.Annotations[v1.IgnitionAnnotation]
+	if ignitiondata != "" && strings.Contains(ignitiondata, "ignition") {
+		initializeQEMUCmdAndQEMUArg(domain)
+		domain.Spec.QEMUCmd.QEMUArg = append(domain.Spec.QEMUCmd.QEMUArg, api.Arg{Value: "-fw_cfg"})
+		ignitionpath := fmt.Sprintf("%s/%s", ignition.GetDomainBasePath(c.VirtualMachine.Name, c.VirtualMachine.Namespace), ignition.IgnitionFile)
+		domain.Spec.QEMUCmd.QEMUArg = append(domain.Spec.QEMUCmd.QEMUArg, api.Arg{Value: fmt.Sprintf("name=opt/com.coreos/config,file=%s", ignitionpath)})
+		domain.Spec.QEMUCmd.QEMUArg = append(domain.Spec.QEMUCmd.QEMUArg, api.Arg{Value: "-machine"}, api.Arg{Value: fmt.Sprintf("pseries-10.0,cap-large-decr=off")})
 	}
 
 	if val := vmi.Annotations[v1.PlacePCIDevicesOnRootComplex]; val == "true" {
