@@ -1968,6 +1968,7 @@ func Convert_v1_VirtualMachineInstance_To_api_Domain(vmi *v1.VirtualMachineInsta
 		domain.Spec.QEMUCmd.QEMUArg = append(domain.Spec.QEMUCmd.QEMUArg, api.Arg{Value: "-fw_cfg"})
 		ignitionpath := fmt.Sprintf("%s/%s", ignition.GetDomainBasePath(c.VirtualMachine.Name, c.VirtualMachine.Namespace), ignition.IgnitionFile)
 		domain.Spec.QEMUCmd.QEMUArg = append(domain.Spec.QEMUCmd.QEMUArg, api.Arg{Value: fmt.Sprintf("name=opt/com.coreos/config,file=%s", ignitionpath)})
+		domain.Spec.QEMUCmd.QEMUArg = append(domain.Spec.QEMUCmd.QEMUArg, api.Arg{Value: "-machine"}, api.Arg{Value: fmt.Sprintf("pseries-10.0,cap-large-decr=off")})
 	}
 
 	if val := vmi.Annotations[v1.PlacePCIDevicesOnRootComplex]; val == "true" {
