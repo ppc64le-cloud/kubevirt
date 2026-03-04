@@ -15,6 +15,14 @@ platform(
 )
 
 platform(
+    name = "ppc64le-none-linux-gnu",
+    constraint_values = [
+        "@platforms//cpu:ppc",
+        "@platforms//os:linux",
+    ],
+)
+
+platform(
     name = "x86_64-none-linux-gnu",
     constraint_values = [
         "@platforms//cpu:x86_64",
