@@ -86,6 +86,7 @@ buildifier_prebuilt_register_toolchains(
         arches = [
             "amd64",
             "arm64",
+            "ppc64le",
             "s390x",
         ],
         names = [
