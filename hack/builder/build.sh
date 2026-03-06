@@ -10,13 +10,34 @@ SCRIPT_DIR="$(
     pwd
 )"
 
+# Detect host architecture
+HOST_ARCH=$(uname -m)
+case ${HOST_ARCH} in
+    x86_64)
+        HOST_ARCH="amd64"
+        ;;
+    aarch64)
+        HOST_ARCH="arm64"
+        ;;
+    ppc64le)
+        HOST_ARCH="ppc64le"
+        ;;
+    s390x)
+        HOST_ARCH="s390x"
+        ;;
+esac
+
 # If qemu-static has already been registered as a runner for foreign
 # binaries, for example by installing qemu-user and qemu-user-binfmt
 # packages on Fedora or by having already run this script earlier,
 # then we shouldn't alter the existing configuration to avoid the
-# risk of possibly breaking it
-if ! grep -q -E '^enabled$' /proc/sys/fs/binfmt_misc/qemu-aarch64 2>/dev/null; then
-    ${KUBEVIRT_CRI} >&2 run --rm --privileged quay.io/linuxserver.io/qemu-static --reset -p yes
+# risk of possibly breaking it.
+# Note: Only setup qemu-user-static on amd64 hosts for cross-compilation.
+# On native ppc64le, arm64, or s390x hosts, we don't need emulation.
+if [ "${HOST_ARCH}" = "amd64" ]; then
+    if ! grep -q -E '^enabled$' /proc/sys/fs/binfmt_misc/qemu-aarch64 2>/dev/null; then
+        ${KUBEVIRT_CRI} >&2 run --rm --privileged docker.io/multiarch/qemu-user-static --reset -p yes
+    fi
 fi
 
 # shellcheck source=hack/builder/common.sh

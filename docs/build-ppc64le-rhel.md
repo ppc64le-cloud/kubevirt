@@ -97,19 +97,29 @@ env EXTRA_BAZEL_ARGS="--host_javabase=@local_jdk//:jdk" ./compile.sh
 # 3. Output the final binary to output/bazel
 ```
 
-### 1.3 Install Bazel for Builder Container
+### 1.3 Install Bazel
 
 ```bash
+# Install Bazel system-wide
+sudo cp output/bazel /usr/local/bin/bazel
+sudo chmod +x /usr/local/bin/bazel
+
+# Verify installation
+bazel --version
+
 # Clone KubeVirt repository
 cd ~
 git clone https://github.com/kubevirt/kubevirt.git
 cd kubevirt
 
-# Copy bazel to the builder directory
+# Also copy bazel to the builder directory
 cp ~/bazel-build/bazel-${BAZEL_VERSION}/output/bazel hack/builder/bazel
 
 # Verify
 ./hack/builder/bazel --version
+
+# IMPORTANT: Restart Bazel server to pick up new .bazelrc configuration
+bazel shutdown
 ```
 
 ## Step 2: Build the KubeVirt Builder Container
@@ -135,7 +145,34 @@ export VERSION="v1.0-ppc64le"
 export KUBEVIRT_BUILDER_IMAGE="${DOCKER_PREFIX}/${DOCKER_IMAGE}:${VERSION}"
 ```
 
-### 2.2 Update RPM Dependencies
+### 2.2 Add ppc64le Repositories
+
+First, ensure ppc64le repositories are configured in `rpm/repo.yaml`:
+
+```bash
+cd ~/kubevirt
+
+# Verify ppc64le repositories are present
+grep -A 2 "arch: ppc64le" rpm/repo.yaml
+```
+
+The file should contain:
+```yaml
+- arch: ppc64le
+  baseurl: http://mirror.stream.centos.org/9-stream/BaseOS/ppc64le/os/
+  name: centos/stream9-baseos-ppc64le
+  gpgkey: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official
+- arch: ppc64le
+  baseurl: http://mirror.stream.centos.org/9-stream/AppStream/ppc64le/os/
+  name: centos/stream9-appstream-ppc64le
+  gpgkey: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official
+- arch: ppc64le
+  baseurl: http://mirror.stream.centos.org/9-stream/CRB/ppc64le/os/
+  name: centos/stream9-crb-ppc64le
+  gpgkey: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official
+```
+
+### 2.3 Update RPM Dependencies
 
 Edit `hack/rpm-deps.sh` to ensure the RPM versions are available for ppc64le in the CentOS Stream repositories:
 
@@ -149,7 +186,7 @@ QEMU_VERSION=${QEMU_VERSION:-17:8.0.0-13.el9}
 # ... etc
 ```
 
-### 2.3 Obtain bazeldnf Utility
+### 2.4 Obtain bazeldnf Utility
 
 For ppc64le, you'll need to build `bazeldnf` from source:
 
@@ -170,59 +207,31 @@ sudo chmod +x /usr/local/bin/bazeldnf
 bazeldnf --help
 ```
 
-### 2.4 Update RPM Dependencies with bazeldnf
+### 2.5 Update RPM Dependencies with bazeldnf
 
-Create and run a script to update RPM dependencies:
+**Important**: Run bazeldnf commands directly, NOT through `make rpm-deps` yet (the builder container doesn't exist yet).
 
 ```bash
 cd ~/kubevirt
 
-cat > fix-rpm-deps.sh << 'EOF'
-#!/bin/bash
+# Fetch repository metadata
+bazeldnf fetch --repofile rpm/repo.yaml
 
-set -ex
-
-BASESYSTEM=${BASESYSTEM:-"centos-stream-release"}
-bazeldnf_repos="--repofile rpm/repo.yaml"
-
-centos_main="
-  acl
-  curl-minimal
-  vim-minimal
-"
-centos_extra="
-  coreutils-single
-  glibc-minimal-langpack
-  libcurl-minimal
-"
-
-sandboxroot_main="
-  findutils
-  gcc
-  glibc-static
-  python3
-  sssd-client
-"
-
-bazeldnf fetch ${bazeldnf_repos}
-
+# Generate RPM tree for ppc64le
 bazeldnf rpmtree \
     --public --nobest \
     --name sandboxroot_ppc64le --arch ppc64le \
-    --basesystem ${BASESYSTEM} \
-    ${bazeldnf_repos} \
-    $centos_main \
-    $centos_extra \
-    $sandboxroot_main
+    --basesystem centos-stream-release \
+    --repofile rpm/repo.yaml \
+    acl curl-minimal vim-minimal \
+    coreutils-single glibc-minimal-langpack libcurl-minimal \
+    findutils gcc glibc-static python3 sssd-client
 
-SINGLE_ARCH=ppc64le make rpm-deps
-EOF
-
-chmod +x fix-rpm-deps.sh
-./fix-rpm-deps.sh
+# This generates the BUILD.bazel file with ppc64le RPM dependencies
+# DO NOT run "make rpm-deps" yet - it requires the builder container
 ```
 
-### 2.5 Build the Builder Container
+### 2.6 Build the Builder Container
 
 ```bash
 # Build the builder container
@@ -234,7 +243,9 @@ make builder-build
 # - All dependencies for building KubeVirt
 ```
 
-### 2.6 Publish the Builder Container
+### 2.7 Publish the Builder Container (Optional)
+
+If you want to use the builder from a remote registry:
 
 ```bash
 # Login to your container registry
@@ -242,6 +253,22 @@ podman login <your-registry-URL>
 
 # Push the builder image
 make builder-publish
+```
+
+**Note**: If you're building locally, you can skip publishing and use the local builder image.
+
+### 2.8 Update RPM Dependencies Using Builder Container
+
+Now that the builder container exists, you can run the full RPM dependency update:
+
+```bash
+# This will use the builder container to update all RPM dependencies
+SINGLE_ARCH=ppc64le make rpm-deps
+
+# This command:
+# 1. Runs inside the builder container
+# 2. Updates rpm/BUILD.bazel with ppc64le packages
+# 3. Ensures all dependencies are correctly configured
 ```
 
 ## Step 3: Build KubeVirt Components

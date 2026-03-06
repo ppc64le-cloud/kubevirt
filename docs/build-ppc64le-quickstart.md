@@ -13,53 +13,54 @@ This follows the same approach as s390x documented in [`build-the-builder.md`](b
 ### Quick Setup
 
 ```bash
-# 1. Install dependencies
+# 1. Install dependencies (Java 21 is available for ppc64le on RHEL 10.1)
 sudo dnf groupinstall -y "Development Tools"
-sudo dnf install -y java-11-openjdk-devel python3 git wget unzip \
+sudo dnf install -y java-21-openjdk-devel python3 git wget unzip \
     gcc gcc-c++ libvirt-devel golang podman zlib-devel
 
-# 2. Build Bazel from source
+# 2. Set Java environment
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+export PATH=$JAVA_HOME/bin:$PATH
+echo 'export JAVA_HOME=/usr/lib/jvm/java-21-openjdk' >> ~/.bashrc
+echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.bashrc
+
+# 3. Build Bazel from source
 mkdir -p ~/bazel-build && cd ~/bazel-build
 BAZEL_VERSION="6.4.0"
 wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-dist.zip
 unzip bazel-${BAZEL_VERSION}-dist.zip -d bazel-${BAZEL_VERSION}
 cd bazel-${BAZEL_VERSION}
-export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 env EXTRA_BAZEL_ARGS="--host_javabase=@local_jdk//:jdk" ./compile.sh
+sudo cp output/bazel /usr/local/bin/bazel
 
-# 3. Clone KubeVirt and setup Bazel
+# 4. Clone KubeVirt and setup Bazel
 cd ~
 git clone https://github.com/kubevirt/kubevirt.git
 cd kubevirt
 cp ~/bazel-build/bazel-${BAZEL_VERSION}/output/bazel hack/builder/bazel
 
-# 4. Build bazeldnf from source
+# IMPORTANT: Restart Bazel to pick up .bazelrc changes
+bazel shutdown
+
+# 5. Build bazeldnf from source
 cd ~
 git clone https://github.com/rmohr/bazeldnf.git
 cd bazeldnf
 go build -o bazeldnf cmd/bazeldnf/bazeldnf.go
 sudo cp bazeldnf /usr/local/bin/
 
-# 5. Update RPM dependencies
+# 6. Verify ppc64le repositories
 cd ~/kubevirt
-cat > fix-rpm-deps.sh << 'EOF'
-#!/bin/bash
-set -ex
-BASESYSTEM=${BASESYSTEM:-"centos-stream-release"}
-bazeldnf_repos="--repofile rpm/repo.yaml"
-centos_main="acl curl-minimal vim-minimal"
-centos_extra="coreutils-single glibc-minimal-langpack libcurl-minimal"
-sandboxroot_main="findutils gcc glibc-static python3 sssd-client"
-bazeldnf fetch ${bazeldnf_repos}
-bazeldnf rpmtree --public --nobest --name sandboxroot_ppc64le --arch ppc64le \
-    --basesystem ${BASESYSTEM} ${bazeldnf_repos} \
-    $centos_main $centos_extra $sandboxroot_main
-SINGLE_ARCH=ppc64le make rpm-deps
-EOF
-chmod +x fix-rpm-deps.sh
-./fix-rpm-deps.sh
+grep -A 2 "arch: ppc64le" rpm/repo.yaml
 
-# 6. Build the builder container
+# 7. Generate initial RPM dependencies (without builder container)
+bazeldnf fetch --repofile rpm/repo.yaml
+bazeldnf rpmtree --public --nobest --name sandboxroot_ppc64le --arch ppc64le \
+    --basesystem centos-stream-release --repofile rpm/repo.yaml \
+    acl curl-minimal vim-minimal coreutils-single glibc-minimal-langpack \
+    libcurl-minimal findutils gcc glibc-static python3 sssd-client
+
+# 8. Build the builder container
 export ARCH="ppc64le"
 export DOCKER_PREFIX="quay.io/myuser"  # Change to your registry
 export DOCKER_IMAGE="kubevirt-builder"
@@ -67,11 +68,14 @@ export VERSION="v1.0-ppc64le"
 export KUBEVIRT_BUILDER_IMAGE="${DOCKER_PREFIX}/${DOCKER_IMAGE}:${VERSION}"
 make builder-build
 
-# 7. Publish builder (optional, if using remote registry)
+# 9. Update RPM dependencies using builder container
+SINGLE_ARCH=ppc64le make rpm-deps
+
+# 10. Publish builder (optional, if using remote registry)
 podman login quay.io
 make builder-publish
 
-# 8. Build KubeVirt
+# 11. Build KubeVirt
 export BUILD_ARCH="ppc64le"
 export DOCKER_PREFIX="quay.io/myuser"  # Change to your registry
 make
