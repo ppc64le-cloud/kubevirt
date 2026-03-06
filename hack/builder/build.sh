@@ -40,17 +40,18 @@ if [ "${HOST_ARCH}" = "amd64" ]; then
     fi
 fi
 
+# On non-amd64 hosts, only build for the native architecture unless explicitly overridden
+# This is because cross-compilation requires qemu-user-static which is only available for amd64
+# Set this BEFORE sourcing common.sh to prevent the default multi-arch value from being used
+if [ "${HOST_ARCH}" != "amd64" ] && [ -z "${ARCHITECTURES}" ]; then
+    export ARCHITECTURES="${HOST_ARCH}"
+    echo "Building for native architecture only: ${HOST_ARCH}"
+fi
+
 # shellcheck source=hack/builder/common.sh
 . "${SCRIPT_DIR}/common.sh"
 # shellcheck source=hack/builder/version.sh
 . "${SCRIPT_DIR}/version.sh"
-
-# On non-amd64 hosts, only build for the native architecture unless explicitly overridden
-# This is because cross-compilation requires qemu-user-static which is only available for amd64
-if [ "${HOST_ARCH}" != "amd64" ] && [ -z "${ARCHITECTURES}" ]; then
-    ARCHITECTURES="${HOST_ARCH}"
-    echo "Building for native architecture only: ${HOST_ARCH}"
-fi
 
 for ARCH in ${ARCHITECTURES}; do
     case ${ARCH} in
