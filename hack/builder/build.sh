@@ -45,7 +45,7 @@ fi
 # Set this BEFORE sourcing common.sh to prevent the default multi-arch value from being used
 if [ "${HOST_ARCH}" != "amd64" ] && [ -z "${ARCHITECTURES}" ]; then
     export ARCHITECTURES="${HOST_ARCH}"
-    echo "Building for native architecture only: ${HOST_ARCH}"
+    echo >&2 "Building for native architecture only: ${HOST_ARCH}"
 fi
 
 # shellcheck source=hack/builder/common.sh
@@ -73,7 +73,7 @@ done
 if echo "${ARCHITECTURES}" | grep -q "amd64"; then
     ${KUBEVIRT_CRI} >&2 build --platform="linux/amd64" -t "${DOCKER_PREFIX}/${DOCKER_CROSS_IMAGE}:${VERSION}" --build-arg BUILDER_IMAGE="${DOCKER_PREFIX}/${DOCKER_IMAGE}:${VERSION}-amd64" -f "${SCRIPT_DIR}/Dockerfile.cross-compile" "${SCRIPT_DIR}"
 else
-    echo "Skipping cross-compile image build (amd64 builder not built)"
+    echo >&2 "Skipping cross-compile image build (amd64 builder not built)"
 fi
 
 # Print the version for use by other callers such as publish.sh
