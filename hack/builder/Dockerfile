@@ -61,6 +61,7 @@ ADD https://storage.googleapis.com/builddeps/swagger2markup-cli-1.3.3.jar /opt/s
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
 ENV JAVA_HOME=/usr/lib/jvm/java-21
+ENV JAVA_TOOL_OPTIONS="--add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED"
 
 # reference to master is for an external repo and can't yet be changed
 RUN mkdir -p /gimme && curl -sL \
@@ -130,6 +131,7 @@ COPY create_bazel_cache_rcs.sh /create_bazel_cache_rcs.sh
 
 # Copy local bazel binary for ppc64le if it exists in the build context
 COPY bazel-ppc64le* /tmp/
+COPY bazel-wrapper.sh /tmp/
 
 # Install Bazel based on architecture
 RUN if test "${ARCH}" = "ppc64le" && test -f "/tmp/bazel-ppc64le"; then \
@@ -141,6 +143,13 @@ RUN if test "${ARCH}" = "ppc64le" && test -f "/tmp/bazel-ppc64le"; then \
        chmod u+x /usr/bin/bazel; \
     else \
        echo "WARNING: No bazel binary available for ${ARCH}"; \
+    fi
+
+# Install bazel wrapper for ppc64le to work around config parsing bug
+RUN if test "${ARCH}" = "ppc64le" && test -f "/usr/bin/bazel"; then \
+       mv /usr/bin/bazel /usr/bin/bazel.real && \
+       cp /tmp/bazel-wrapper.sh /usr/bin/bazel && \
+       chmod +x /usr/bin/bazel; \
     fi
 
 # Add /root/go/src/kubevirt.io/kubevirt and mark it as a safe directory for git
