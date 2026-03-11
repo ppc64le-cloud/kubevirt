@@ -2,6 +2,10 @@
 try-import ci.bazelrc
 try-import .bazeldnf/sandbox.bazelrc
 
+# Java 21 compatibility flags to prevent module access errors
+startup --host_jvm_args=--add-opens=java.base/java.nio=ALL-UNNAMED
+startup --host_jvm_args=--add-opens=java.base/java.lang=ALL-UNNAMED
+
 # Set common values for all builds (run, test and coverage inherit from build)
 build --stamp --workspace_status_command=./hack/print-workspace-status.sh --host_force_python=PY3
 
