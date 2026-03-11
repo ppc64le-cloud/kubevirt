@@ -17,7 +17,7 @@ platform(
 platform(
     name = "ppc64le-none-linux-gnu",
     constraint_values = [
-        "@platforms//cpu:ppc",
+        "@platforms//cpu:ppc64le",
         "@platforms//os:linux",
     ],
 )

@@ -16,7 +16,7 @@ ENV KUBEVIRT_CREATE_BAZELRCS=false
 RUN dnf install -y dnf-plugins-core && \
     dnf config-manager --enable crb && \
     dnf install -y --setopt=install_weak_deps=False \
-        java-11-openjdk-devel \
+        java-21-openjdk-devel \
         libvirt-devel \
         cpio \
         patch \
@@ -61,7 +61,7 @@ ADD https://storage.googleapis.com/builddeps/swagger2markup-cli-1.3.3.jar /opt/s
 # https://github.com/bazelbuild/bazel/issues/11554
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-ENV JAVA_HOME=/usr/lib/jvm/java-11
+ENV JAVA_HOME=/usr/lib/jvm/java-21
 
 # reference to master is for an external repo and can't yet be changed
 RUN mkdir -p /gimme && curl -sL \
@@ -129,9 +129,19 @@ COPY entrypoint.sh /entrypoint.sh
 
 COPY create_bazel_cache_rcs.sh /create_bazel_cache_rcs.sh
 
-RUN if test "${ARCH}" != "s390x"; then \
+# Copy local bazel binary for ppc64le if it exists in the build context
+COPY bazel-ppc64le* /tmp/
+
+# Install Bazel based on architecture
+RUN if test "${ARCH}" = "ppc64le" && test -f "/tmp/bazel-ppc64le"; then \
+       # Use local bazel binary for ppc64le
+       cp /tmp/bazel-ppc64le /usr/bin/bazel && chmod +x /usr/bin/bazel; \
+    elif test "${ARCH}" != "s390x" && test "${ARCH}" != "ppc64le"; then \
+       # Download pre-built Bazel for amd64 and arm64
        curl -L -o /usr/bin/bazel https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-linux-${BAZEL_ARCH} && \
        chmod u+x /usr/bin/bazel; \
+    else \
+       echo "WARNING: No bazel binary available for ${ARCH}"; \
     fi
 
 # Add /root/go/src/kubevirt.io/kubevirt and mark it as a safe directory for git
