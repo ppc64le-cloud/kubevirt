@@ -2,20 +2,125 @@
 # Author: Punith Kenchappa <pkenchap@in.ibm.com>
 # Architecture: ppc64le
 
-FROM quay.io/centos/centos:stream9
+FROM quay.io/fedora/fedora:42-ppc64le AS build
 
-# Install runtime dependencies for virt-handler
+# Install runtime dependencies for virt-handler (matching handlerbase from rpm/BUILD.bazel)
 RUN dnf install -y --setopt=install_weak_deps=False \
-    libvirt-libs \
-    qemu-kvm-core \
+    acl \
+    alternatives \
+    audit-libs \
+    basesystem \
+    bash \
+    bzip2-libs \
+    ca-certificates \
+    coreutils-single \
+    cracklib \
+    cracklib-dicts \
+    crypto-policies \
+    curl-minimal \
+    diffutils \
+    elfutils-libelf \
+    filesystem \
+    findutils \
+    gawk \
+    glib2 \
+    glibc \
+    glibc-common \
+    glibc-minimal-langpack \
+    gmp \
+    gnutls \
+    grep \
+    gzip \
+    iproute \
+    iptables-libs \
+    jansson \
+    keyutils-libs \
+    krb5-libs \
+    libacl \
+    libaio \
+    libarchive \
+    libattr \
+    libblkid \
+    libbpf \
+    libburn \
+    libcap \
+    libcap-ng \
+    libcom_err \
+    libcurl-minimal \
+    libdb \
+    libeconf \
+    libfdisk \
+    libffi \
+    libgcc \
+    libgcrypt \
+    libgpg-error \
+    libidn2 \
+    libisoburn \
+    libisofs \
+    libmnl \
+    libmount \
+    libnetfilter_conntrack \
+    libnfnetlink \
+    libnftnl \
+    libnghttp2 \
+    libpwquality \
+    libselinux \
+    libselinux-utils \
+    libsemanage \
+    libsepol \
+    libsigsegv \
+    libsmartcols \
+    libtasn1 \
+    libunistring \
+    liburing \
+    libutempter \
+    libuuid \
+    libverto \
+    libxcrypt \
+    libxml2 \
+    libzstd \
+    lua-libs \
+    lz4-libs \
+    mpfr \
+    ncurses-base \
+    ncurses-libs \
+    nettle \
+    nftables \
+    numactl-libs \
+    openssl \
+    openssl-fips-provider \
+    openssl-libs \
+    p11-kit \
+    p11-kit-trust \
+    pam \
+    passt \
+    pcre \
+    pcre2 \
+    pcre2-syntax \
+    policycoreutils \
+    popt \
+    procps-ng \
+    psmisc \
+    qemu-img \
+    readline \
+    rpm \
+    rpm-libs \
+    rpm-plugin-selinux \
+    sed \
     selinux-policy \
     selinux-policy-targeted \
-    iptables \
-    iproute \
-    nftables \
-    ebtables \
-    ethtool \
-    ca-certificates \
+    setup \
+    shadow-utils \
+    sqlite-libs \
+    systemd-libs \
+    tar \
+    tzdata \
+    util-linux \
+    util-linux-core \
+    vim-minimal \
+    xorriso \
+    xz-libs \
+    zlib \
     && dnf clean all
 
 # Create users and groups
@@ -34,6 +139,10 @@ COPY _build/bin/virt-chroot /usr/bin/virt-chroot
 
 # Set permissions
 RUN chmod +x /usr/bin/virt-handler /usr/bin/virt-chroot
+
+# Create symlinks (matching handlerbase)
+RUN ln -sf ../run /var/run && \
+    ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables
 
 # Run as root (virt-handler needs elevated privileges)
 USER root

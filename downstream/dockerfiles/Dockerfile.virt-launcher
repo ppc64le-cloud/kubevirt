@@ -2,26 +2,202 @@
 # Author: Punith Kenchappa <pkenchap@in.ibm.com>
 # Architecture: ppc64le
 
-FROM quay.io/centos/centos:stream9
+FROM quay.io/fedora/fedora:42-ppc64le AS build
 
-# Install runtime dependencies for virt-launcher (QEMU/KVM environment)
+# Install runtime dependencies for virt-launcher (matching launcherbase from rpm/BUILD.bazel)
 RUN dnf install -y --setopt=install_weak_deps=False \
-    libvirt-daemon-driver-qemu \
+    acl \
+    alternatives \
+    audit-libs \
+    basesystem \
+    bash \
+    bzip2 \
+    bzip2-libs \
+    ca-certificates \
+    capstone \
+    coreutils-single \
+    cracklib \
+    cracklib-dicts \
+    crypto-policies \
+    curl-minimal \
+    cyrus-sasl-gssapi \
+    cyrus-sasl-lib \
+    daxctl-libs \
+    dbus \
+    dbus-broker \
+    dbus-common \
+    diffutils \
+    dmidecode \
+    edk2-ovmf \
+    elfutils-libelf \
+    ethtool \
+    expat \
+    filesystem \
+    findutils \
+    gawk \
+    gdbm-libs \
+    gettext \
+    gettext-libs \
+    glib2 \
+    glibc \
+    glibc-common \
+    glibc-minimal-langpack \
+    gmp \
+    gnutls \
+    gnutls-dane \
+    gnutls-utils \
+    grep \
+    gzip \
+    iproute \
+    iproute-tc \
+    iptables-libs \
+    ipxe-roms-qemu \
+    jansson \
+    json-c \
+    json-glib \
+    keyutils-libs \
+    kmod-libs \
+    krb5-libs \
+    libacl \
+    libaio \
+    libarchive \
+    libattr \
+    libblkid \
+    libbpf \
+    libburn \
+    libcap \
+    libcap-ng \
+    libcom_err \
+    libcurl-minimal \
+    libdb \
+    libeconf \
+    libevent \
+    libfdisk \
+    libfdt \
+    libffi \
+    libgcc \
+    libgcrypt \
+    libgomp \
+    libgpg-error \
+    libibverbs \
+    libidn2 \
+    libisoburn \
+    libisofs \
+    libmnl \
+    libmount \
+    libnbd \
+    libnetfilter_conntrack \
+    libnfnetlink \
+    libnftnl \
+    libnghttp2 \
+    libnl3 \
+    libpcap \
+    libpmem \
+    libpng \
+    libpwquality \
+    librdmacm \
+    libseccomp \
+    libselinux \
+    libselinux-utils \
+    libsemanage \
+    libsepol \
+    libsigsegv \
+    libslirp \
+    libsmartcols \
+    libssh \
+    libssh-config \
+    libstdc++ \
+    libtasn1 \
+    libtirpc \
+    libtpms \
+    libunistring \
+    liburing \
+    libusbx \
+    libutempter \
+    libuuid \
+    libverto \
     libvirt-client \
-    qemu-kvm-core \
+    libvirt-daemon-common \
+    libvirt-daemon-driver-qemu \
+    libvirt-daemon-log \
+    libvirt-libs \
+    libxcrypt \
+    libxml2 \
+    libzstd \
+    lua-libs \
+    lz4-libs \
+    lzo \
+    lzop \
+    mpfr \
+    ncurses-base \
+    ncurses-libs \
+    ndctl-libs \
+    nettle \
+    nftables \
+    nmap-ncat \
+    numactl-libs \
+    numad \
+    openssl \
+    openssl-fips-provider \
+    openssl-libs \
+    p11-kit \
+    p11-kit-trust \
+    pam \
+    passt \
+    pcre \
+    pcre2 \
+    pcre2-syntax \
+    pixman \
+    policycoreutils \
+    polkit \
+    polkit-libs \
+    popt \
+    procps-ng \
+    protobuf-c \
+    psmisc \
     qemu-img \
-    qemu-kvm-block-curl \
-    qemu-kvm-block-rbd \
+    qemu-kvm-common \
+    qemu-kvm-core \
+    qemu-kvm-device-display-virtio-gpu \
+    qemu-kvm-device-display-virtio-gpu-pci \
+    qemu-kvm-device-display-virtio-vga \
+    qemu-kvm-device-usb-host \
+    qemu-kvm-device-usb-redirect \
+    readline \
+    rpm \
+    rpm-libs \
+    rpm-plugin-selinux \
+    seabios \
+    seabios-bin \
+    seavgabios-bin \
+    sed \
     selinux-policy \
     selinux-policy-targeted \
-    iptables \
-    iproute \
-    nftables \
-    ebtables \
-    ethtool \
-    genisoimage \
-    ca-certificates \
-    procps-ng \
+    setup \
+    shadow-utils \
+    snappy \
+    sqlite-libs \
+    swtpm \
+    swtpm-libs \
+    swtpm-tools \
+    systemd \
+    systemd-container \
+    systemd-libs \
+    systemd-pam \
+    systemd-rpm-macros \
+    tar \
+    tzdata \
+    unbound-libs \
+    usbredir \
+    util-linux \
+    util-linux-core \
+    vim-minimal \
+    virtiofsd \
+    xorriso \
+    xz \
+    xz-libs \
+    zlib \
+    zstd \
     && dnf clean all
 
 # Create users and groups
@@ -64,8 +240,19 @@ RUN chmod +x /usr/bin/virt-launcher \
 # Set capabilities for virt-launcher-monitor (needs to bind to privileged ports)
 RUN setcap cap_net_bind_service=+ep /usr/bin/virt-launcher-monitor || true
 
-# Create necessary directories
-RUN mkdir -p /var/run/libvirt /var/lib/libvirt /usr/lib64/qemu-kvm
+# Set capabilities for qemu-kvm (as defined in launcherbase)
+RUN setcap cap_net_bind_service=+ep /usr/libexec/qemu-kvm || true
+
+# Create necessary directories and symlinks (matching launcherbase)
+RUN mkdir -p /var/run/libvirt /var/lib/libvirt /usr/lib64/qemu-kvm && \
+    ln -sf ../run /var/run && \
+    ln -sf /usr/sbin/iptables-legacy /usr/sbin/iptables && \
+    ln -sf /usr/bin/ncat /usr/bin/nc && \
+    mkdir -p /usr/share/OVMF && \
+    ln -sf ../edk2/ovmf/OVMF_CODE.cc.fd /usr/share/OVMF/OVMF_CODE.cc.fd || true && \
+    mkdir -p /etc/crypto-policies/back-ends && \
+    ln -sf /usr/share/crypto-policies/DEFAULT/openssl.txt /etc/crypto-policies/back-ends/openssl.config || true && \
+    ln -sf /usr/share/crypto-policies/DEFAULT/opensslcnf.txt /etc/crypto-policies/back-ends/opensslcnf.config || true
 
 # Run as root (virt-launcher needs elevated privileges to manage VMs)
 USER root
