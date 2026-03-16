@@ -1,0 +1,37 @@
+FROM quay.io/centos/centos:stream9
+
+# Install runtime dependencies for virt-handler
+RUN dnf install -y --setopt=install_weak_deps=False \
+    libvirt-libs \
+    qemu-kvm-core \
+    selinux-policy \
+    selinux-policy-targeted \
+    iptables \
+    iproute \
+    nftables \
+    ebtables \
+    ethtool \
+    ca-certificates \
+    && dnf clean all
+
+# Create users and groups
+RUN groupadd -g 107 qemu && \
+    useradd -u 107 -g 107 -s /bin/bash -d /home/qemu qemu && \
+    useradd -u 0 -g 0 -s /bin/bash -d /root root
+
+# Create nsswitch.conf
+RUN echo "passwd:     files" > /etc/nsswitch.conf && \
+    echo "group:      files" >> /etc/nsswitch.conf && \
+    echo "hosts:      files dns" >> /etc/nsswitch.conf
+
+# Copy binaries
+COPY _build/bin/virt-handler /usr/bin/virt-handler
+COPY _build/bin/virt-chroot /usr/bin/virt-chroot
+
+# Set permissions
+RUN chmod +x /usr/bin/virt-handler /usr/bin/virt-chroot
+
+# Run as root (virt-handler needs elevated privileges)
+USER root
+
+ENTRYPOINT ["/usr/bin/virt-handler"]
