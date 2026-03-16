@@ -1,5 +1,9 @@
 # KubeVirt Downstream Build System
 
+**Author:** Punith Kenchappa
+**Email:** pkenchap@in.ibm.com
+**Purpose:** Dockerfile-based build system for KubeVirt ppc64le architecture
+
 This directory contains a Dockerfile-based build system for KubeVirt, designed as an alternative to the Bazel-based upstream build. This approach is similar to OpenShift Virtualization's downstream build process.
 
 ## Overview
@@ -78,6 +82,11 @@ make build-virt-api
 make build-virt-controller
 make build-virt-handler
 make build-virt-launcher
+make build-virtctl
+
+# Build and install virtctl CLI
+make build-virtctl
+make install-virtctl  # Installs to /usr/local/bin
 
 # Build specific image
 make build-virt-operator-image
@@ -109,6 +118,15 @@ make push-images
 6. **virt-exportproxy** - Proxy for VM export operations
 7. **virt-exportserver** - Server for VM export operations
 
+### CLI Tool
+
+8. **virtctl** - Command-line tool for managing VMs
+   - Create, start, stop, and delete VMs
+   - Access VM console and VNC
+   - Manage VM snapshots and migrations
+   - Port forwarding and file uploads
+   - Install with: `make install-virtctl`
+
 ### Helper Binaries
 
 - **virt-chroot** - Chroot helper for virt-handler
@@ -116,7 +134,7 @@ make push-images
 - **virt-probe** - VM readiness/liveness probes
 - **virt-tail** - Log tailing utility
 - **virt-launcher-monitor** - Monitors virt-launcher process
-- **container-disk** - Container disk management
+- **container-disk** - Container disk management (C program)
 - **csv-generator** - Generates ClusterServiceVersion for OLM
 
 ## Image Details

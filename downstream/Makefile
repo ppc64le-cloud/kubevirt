@@ -1,5 +1,9 @@
 # KubeVirt Downstream Build System
 # Builds container images using Dockerfiles instead of Bazel
+#
+# Author: Punith Kenchappa
+# Email: pkenchap@in.ibm.com
+# Description: Dockerfile-based build system for KubeVirt ppc64le
 
 # Configuration
 REGISTRY ?= quay.io/pkenchap
@@ -52,7 +56,8 @@ build-binaries: \
 	build-container-disk \
 	build-virt-exportproxy \
 	build-virt-exportserver \
-	build-csv-generator
+	build-csv-generator \
+	build-virtctl
 
 .PHONY: build-virt-operator
 build-virt-operator:
@@ -128,10 +133,9 @@ build-virt-launcher-monitor:
 
 .PHONY: build-container-disk
 build-container-disk:
-	@echo "Building container-disk binary..."
+	@echo "Building container-disk binary (C program)..."
 	@mkdir -p $(BIN_DIR)
-	cd .. && CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
-		go build $(GO_BUILD_FLAGS) -o downstream/$(BIN_DIR)/container-disk ./cmd/container-disk-v2alpha
+	cd ../cmd/container-disk-v2alpha && gcc -o ../../downstream/$(BIN_DIR)/container-disk main.c -static
 
 .PHONY: build-virt-exportproxy
 build-virt-exportproxy:
@@ -154,6 +158,24 @@ build-csv-generator:
 	cd .. && CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
 		go build $(GO_BUILD_FLAGS) -o downstream/$(BIN_DIR)/csv-generator ./tools/csv-generator
 
+.PHONY: build-virtctl
+build-virtctl:
+	@echo "Building virtctl binary for $(ARCH)..."
+	@mkdir -p $(BIN_DIR)
+	cd .. && CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) \
+		go build $(GO_BUILD_FLAGS) -o downstream/$(BIN_DIR)/virtctl ./cmd/virtctl
+	@echo "virtctl binary built successfully at $(BIN_DIR)/virtctl"
+	@file $(BIN_DIR)/virtctl
+
+.PHONY: install-virtctl
+install-virtctl: build-virtctl
+	@echo "Installing virtctl to /usr/local/bin..."
+	@sudo cp $(BIN_DIR)/virtctl /usr/local/bin/virtctl
+	@sudo chmod +x /usr/local/bin/virtctl
+	@echo "virtctl installed successfully!"
+	@echo "Testing virtctl..."
+	@virtctl version || echo "Note: virtctl version may fail until KubeVirt is deployed"
+
 .PHONY: build-images
 build-images: \
 	build-virt-operator-image \
@@ -166,38 +188,38 @@ build-images: \
 
 .PHONY: build-virt-operator-image
 build-virt-operator-image: build-virt-operator build-csv-generator
-	@echo "Building virt-operator image..."
-	podman build -t $(VIRT_OPERATOR_IMAGE) -f dockerfiles/Dockerfile.virt-operator .
+	@echo "Building virt-operator image for $(ARCH)..."
+	podman build --platform=linux/$(ARCH) -t $(VIRT_OPERATOR_IMAGE) -f dockerfiles/Dockerfile.virt-operator .
 
 .PHONY: build-virt-api-image
 build-virt-api-image: build-virt-api
-	@echo "Building virt-api image..."
-	podman build -t $(VIRT_API_IMAGE) -f dockerfiles/Dockerfile.virt-api .
+	@echo "Building virt-api image for $(ARCH)..."
+	podman build --platform=linux/$(ARCH) -t $(VIRT_API_IMAGE) -f dockerfiles/Dockerfile.virt-api .
 
 .PHONY: build-virt-controller-image
 build-virt-controller-image: build-virt-controller
-	@echo "Building virt-controller image..."
-	podman build -t $(VIRT_CONTROLLER_IMAGE) -f dockerfiles/Dockerfile.virt-controller .
+	@echo "Building virt-controller image for $(ARCH)..."
+	podman build --platform=linux/$(ARCH) -t $(VIRT_CONTROLLER_IMAGE) -f dockerfiles/Dockerfile.virt-controller .
 
 .PHONY: build-virt-handler-image
 build-virt-handler-image: build-virt-handler build-virt-chroot
-	@echo "Building virt-handler image..."
-	podman build -t $(VIRT_HANDLER_IMAGE) -f dockerfiles/Dockerfile.virt-handler .
+	@echo "Building virt-handler image for $(ARCH)..."
+	podman build --platform=linux/$(ARCH) -t $(VIRT_HANDLER_IMAGE) -f dockerfiles/Dockerfile.virt-handler .
 
 .PHONY: build-virt-launcher-image
 build-virt-launcher-image: build-virt-launcher build-virt-freezer build-virt-probe build-virt-tail build-virt-launcher-monitor build-container-disk
-	@echo "Building virt-launcher image..."
-	podman build -t $(VIRT_LAUNCHER_IMAGE) -f dockerfiles/Dockerfile.virt-launcher .
+	@echo "Building virt-launcher image for $(ARCH)..."
+	podman build --platform=linux/$(ARCH) -t $(VIRT_LAUNCHER_IMAGE) -f dockerfiles/Dockerfile.virt-launcher .
 
 .PHONY: build-virt-exportproxy-image
 build-virt-exportproxy-image: build-virt-exportproxy
-	@echo "Building virt-exportproxy image..."
-	podman build -t $(VIRT_EXPORTPROXY_IMAGE) -f dockerfiles/Dockerfile.virt-exportproxy .
+	@echo "Building virt-exportproxy image for $(ARCH)..."
+	podman build --platform=linux/$(ARCH) -t $(VIRT_EXPORTPROXY_IMAGE) -f dockerfiles/Dockerfile.virt-exportproxy .
 
 .PHONY: build-virt-exportserver-image
 build-virt-exportserver-image: build-virt-exportserver
-	@echo "Building virt-exportserver image..."
-	podman build -t $(VIRT_EXPORTSERVER_IMAGE) -f dockerfiles/Dockerfile.virt-exportserver .
+	@echo "Building virt-exportserver image for $(ARCH)..."
+	podman build --platform=linux/$(ARCH) -t $(VIRT_EXPORTSERVER_IMAGE) -f dockerfiles/Dockerfile.virt-exportserver .
 
 .PHONY: push-images
 push-images:
