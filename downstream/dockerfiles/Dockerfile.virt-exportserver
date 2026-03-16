@@ -1,0 +1,21 @@
+FROM quay.io/centos/centos:stream9
+
+# Install runtime dependencies
+RUN dnf install -y --setopt=install_weak_deps=False \
+    ca-certificates \
+    qemu-img \
+    && dnf clean all
+
+# Create non-root user
+RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+    -c "KubeVirt Export Server user" kubevirt
+
+# Copy binary
+COPY _build/bin/virt-exportserver /usr/bin/virt-exportserver
+
+# Set permissions
+RUN chmod +x /usr/bin/virt-exportserver
+
+USER 1001
+
+ENTRYPOINT ["/usr/bin/virt-exportserver"]
