@@ -141,7 +141,10 @@ make push-images
 
 ### Base Images
 
-All images use `quay.io/centos/centos:stream9` as the base image for consistency with RHEL/OpenShift environments.
+All images use `quay.io/fedora/fedora:42-ppc64le` as the base image, specifically built for ppc64le architecture. This provides:
+- Native ppc64le support
+- Latest packages and libraries
+- Better compatibility with IBM POWER systems
 
 ### Runtime Dependencies
 

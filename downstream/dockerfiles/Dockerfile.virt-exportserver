@@ -2,7 +2,7 @@
 # Author: Punith Kenchappa <pkenchap@in.ibm.com>
 # Architecture: ppc64le
 
-FROM quay.io/centos/centos:stream9
+FROM quay.io/fedora/fedora:42-ppc64le AS build
 
 # Install runtime dependencies
 RUN dnf install -y --setopt=install_weak_deps=False \
