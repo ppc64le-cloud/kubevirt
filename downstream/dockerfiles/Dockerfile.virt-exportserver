@@ -1,3 +1,7 @@
+# KubeVirt virt-exportserver Image
+# Author: Punith Kenchappa <pkenchap@in.ibm.com>
+# Architecture: ppc64le
+
 FROM quay.io/centos/centos:stream9
 
 # Install runtime dependencies
