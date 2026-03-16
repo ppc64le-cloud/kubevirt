@@ -1,0 +1,20 @@
+FROM quay.io/centos/centos:stream9
+
+# Install runtime dependencies
+RUN dnf install -y --setopt=install_weak_deps=False \
+    ca-certificates \
+    && dnf clean all
+
+# Create non-root user
+RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+    -c "KubeVirt Export Proxy user" kubevirt
+
+# Copy binary
+COPY _build/bin/virt-exportproxy /usr/bin/virt-exportproxy
+
+# Set permissions
+RUN chmod +x /usr/bin/virt-exportproxy
+
+USER 1001
+
+ENTRYPOINT ["/usr/bin/virt-exportproxy"]

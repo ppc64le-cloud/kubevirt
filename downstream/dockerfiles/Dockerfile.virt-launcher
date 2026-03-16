@@ -1,0 +1,69 @@
+FROM quay.io/centos/centos:stream9
+
+# Install runtime dependencies for virt-launcher (QEMU/KVM environment)
+RUN dnf install -y --setopt=install_weak_deps=False \
+    libvirt-daemon-driver-qemu \
+    libvirt-client \
+    qemu-kvm-core \
+    qemu-img \
+    qemu-kvm-block-curl \
+    qemu-kvm-block-rbd \
+    selinux-policy \
+    selinux-policy-targeted \
+    iptables \
+    iproute \
+    nftables \
+    ebtables \
+    ethtool \
+    genisoimage \
+    ca-certificates \
+    procps-ng \
+    && dnf clean all
+
+# Create users and groups
+RUN groupadd -g 107 qemu && \
+    useradd -u 107 -g 107 -s /bin/bash -d /home/qemu -m qemu && \
+    useradd -u 0 -g 0 -s /bin/bash -d /root root
+
+# Create nsswitch.conf
+RUN echo "passwd:     files" > /etc/nsswitch.conf && \
+    echo "group:      files" >> /etc/nsswitch.conf && \
+    echo "hosts:      files dns" >> /etc/nsswitch.conf
+
+# Create libvirt configuration directory
+RUN mkdir -p /etc/libvirt
+
+# Copy libvirt configuration files
+COPY ../cmd/virt-launcher/qemu.conf /etc/libvirt/qemu.conf
+COPY ../cmd/virt-launcher/virtqemud.conf /etc/libvirt/virtqemud.conf
+
+# Copy binaries
+COPY _build/bin/virt-launcher /usr/bin/virt-launcher
+COPY _build/bin/virt-freezer /usr/bin/virt-freezer
+COPY _build/bin/virt-probe /usr/bin/virt-probe
+COPY _build/bin/virt-tail /usr/bin/virt-tail
+COPY _build/bin/virt-launcher-monitor /usr/bin/virt-launcher-monitor
+COPY _build/bin/container-disk /usr/bin/container-disk
+
+# Copy node-labeller script
+COPY ../cmd/virt-launcher/node-labeller/node-labeller.sh /usr/bin/node-labeller.sh
+
+# Set permissions
+RUN chmod +x /usr/bin/virt-launcher \
+    /usr/bin/virt-freezer \
+    /usr/bin/virt-probe \
+    /usr/bin/virt-tail \
+    /usr/bin/virt-launcher-monitor \
+    /usr/bin/container-disk \
+    /usr/bin/node-labeller.sh
+
+# Set capabilities for virt-launcher-monitor (needs to bind to privileged ports)
+RUN setcap cap_net_bind_service=+ep /usr/bin/virt-launcher-monitor || true
+
+# Create necessary directories
+RUN mkdir -p /var/run/libvirt /var/lib/libvirt /usr/lib64/qemu-kvm
+
+# Run as root (virt-launcher needs elevated privileges to manage VMs)
+USER root
+
+ENTRYPOINT ["/usr/bin/virt-launcher"]

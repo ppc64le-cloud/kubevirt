@@ -1,0 +1,21 @@
+FROM quay.io/centos/centos:stream9
+
+# Install runtime dependencies
+RUN dnf install -y --setopt=install_weak_deps=False \
+    ca-certificates \
+    && dnf clean all
+
+# Create non-root user
+RUN useradd -u 1001 -r -g 0 -s /sbin/nologin \
+    -c "KubeVirt Operator user" kubevirt
+
+# Copy binaries
+COPY _build/bin/virt-operator /usr/bin/virt-operator
+COPY _build/bin/csv-generator /usr/bin/csv-generator
+
+# Set permissions
+RUN chmod +x /usr/bin/virt-operator /usr/bin/csv-generator
+
+USER 1001
+
+ENTRYPOINT ["/usr/bin/virt-operator"]
