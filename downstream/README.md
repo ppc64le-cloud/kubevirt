@@ -96,6 +96,21 @@ make build-virt-handler-image
 make build-virt-launcher-image
 ```
 
+## Generating Manifests
+
+```bash
+# Generate deployment manifests for your custom images
+make manifests
+```
+
+This creates Kubernetes manifests in `_build/manifests/`:
+- `kubevirt-operator.yaml` - Operator deployment
+- `kubevirt-cr.yaml` - KubeVirt custom resource
+
+The manifests are automatically configured with your REGISTRY and VERSION settings.
+
+**Note**: This uses a simple sed-based approach that doesn't require Bazel or the upstream builder image, making it perfect for ppc64le builds!
+
 ## Pushing Images
 
 ```bash
@@ -173,6 +188,8 @@ make clean
 3. **Direct Dependencies**: RPM packages installed directly in images
 4. **Easier Customization**: Modify Dockerfiles for downstream requirements
 5. **Faster Iteration**: No Bazel cache or complex build rules
+6. **Native ppc64le Support**: No need for cross-compilation or x86_64 builder images
+7. **Simple Manifests**: Sed-based manifest generation without Bazel templating
 
 ## Integration with OpenShift Virtualization
 

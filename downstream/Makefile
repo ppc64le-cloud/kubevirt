@@ -208,6 +208,11 @@ build-virt-handler-image: build-virt-handler build-virt-chroot
 
 .PHONY: build-virt-launcher-image
 build-virt-launcher-image: build-virt-launcher build-virt-freezer build-virt-probe build-virt-tail build-virt-launcher-monitor build-container-disk
+	@echo "Preparing virt-launcher build context..."
+	@mkdir -p downstream/cmd/virt-launcher/node-labeller
+	@cp cmd/virt-launcher/qemu.conf downstream/cmd/virt-launcher/
+	@cp cmd/virt-launcher/virtqemud.conf downstream/cmd/virt-launcher/
+	@cp cmd/virt-launcher/node-labeller/node-labeller.sh downstream/cmd/virt-launcher/node-labeller/
 	@echo "Building virt-launcher image for $(ARCH)..."
 	podman build --platform=linux/$(ARCH) -t $(VIRT_LAUNCHER_IMAGE) -f dockerfiles/Dockerfile.virt-launcher .
 
@@ -232,6 +237,42 @@ push-images:
 	podman push $(VIRT_EXPORTPROXY_IMAGE)
 	podman push $(VIRT_EXPORTSERVER_IMAGE)
 
+.PHONY: manifests
+manifests:
+	@echo "Generating KubeVirt manifests for ppc64le..."
+	@mkdir -p $(BUILD_DIR)/manifests
+	@echo "Generating operator manifest..."
+	@sed -e 's|registry:5000/kubevirt|$(REGISTRY)|g' \
+	     -e 's|:latest|:$(VERSION)|g' \
+	     -e 's|imagePullPolicy: Always|imagePullPolicy: IfNotPresent|g' \
+	     ../manifests/release/kubevirt-operator.yaml.in > $(BUILD_DIR)/manifests/kubevirt-operator.yaml || \
+	     (echo "Warning: kubevirt-operator.yaml.in not found, creating basic manifest" && \
+	      echo "apiVersion: v1" > $(BUILD_DIR)/manifests/kubevirt-operator.yaml && \
+	      echo "kind: Namespace" >> $(BUILD_DIR)/manifests/kubevirt-operator.yaml && \
+	      echo "metadata:" >> $(BUILD_DIR)/manifests/kubevirt-operator.yaml && \
+	      echo "  name: kubevirt" >> $(BUILD_DIR)/manifests/kubevirt-operator.yaml)
+	@echo "Generating CR manifest..."
+	@sed -e 's|registry:5000/kubevirt|$(REGISTRY)|g' \
+	     -e 's|:latest|:$(VERSION)|g' \
+	     ../manifests/release/kubevirt-cr.yaml.in > $(BUILD_DIR)/manifests/kubevirt-cr.yaml || \
+	     (echo "apiVersion: kubevirt.io/v1" > $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
+	      echo "kind: KubeVirt" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
+	      echo "metadata:" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
+	      echo "  name: kubevirt" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
+	      echo "  namespace: kubevirt" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
+	      echo "spec:" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
+	      echo "  imagePullPolicy: IfNotPresent" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
+	      echo "  imageRegistry: $(REGISTRY)" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
+	      echo "  imageTag: $(VERSION)" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml)
+	@echo ""
+	@echo "Manifests generated in $(BUILD_DIR)/manifests/"
+	@echo "  - kubevirt-operator.yaml"
+	@echo "  - kubevirt-cr.yaml"
+	@echo ""
+	@echo "To deploy KubeVirt:"
+	@echo "  kubectl apply -f $(BUILD_DIR)/manifests/kubevirt-operator.yaml"
+	@echo "  kubectl apply -f $(BUILD_DIR)/manifests/kubevirt-cr.yaml"
+
 .PHONY: help
 help:
 	@echo "KubeVirt Downstream Build System"
@@ -241,6 +282,7 @@ help:
 	@echo "  build-binaries     - Build all Go binaries"
 	@echo "  build-images       - Build all container images"
 	@echo "  push-images        - Push all images to registry"
+	@echo "  manifests          - Generate deployment manifests"
 	@echo "  clean              - Clean build artifacts"
 	@echo ""
 	@echo "Configuration:"
