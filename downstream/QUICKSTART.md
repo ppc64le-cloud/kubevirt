@@ -182,29 +182,27 @@ make push-images
 ## Step 6: Generate Manifests
 
 ```bash
-cd ..  # Back to kubevirt root directory
-
-# Set image references
-export DOCKER_PREFIX=quay.io/pkenchap
-export DOCKER_TAG=v1.0.0-ppc64le
-
-# Generate manifests
+# Generate manifests using downstream Makefile (no Bazel required!)
 make manifests
 ```
 
-**Expected output**: Manifests in `_out/manifests/release/`
+**Expected output**: Manifests in `_build/manifests/`
+- `kubevirt-operator.yaml` - Operator deployment
+- `kubevirt-cr.yaml` - KubeVirt custom resource
+
+**Note**: This uses the downstream manifests generator which doesn't require Bazel or the upstream builder image. It works perfectly on ppc64le!
 
 ## Step 7: Deploy to Kubernetes
 
 ```bash
 # Deploy KubeVirt operator
-kubectl create -f _out/manifests/release/kubevirt-operator.yaml
+kubectl apply -f _build/manifests/kubevirt-operator.yaml
 
 # Wait for operator to be ready
 kubectl wait --for=condition=Ready pod -l kubevirt.io=virt-operator -n kubevirt --timeout=300s
 
 # Deploy KubeVirt CR
-kubectl create -f _out/manifests/release/kubevirt-cr.yaml
+kubectl apply -f _build/manifests/kubevirt-cr.yaml
 
 # Wait for all components
 kubectl wait --for=condition=Ready pod -l kubevirt.io -n kubevirt --timeout=600s
@@ -338,9 +336,9 @@ cd /root/kubevirt_2025/kubevirt/downstream
 export REGISTRY=quay.io/pkenchap VERSION=v1.0.0-ppc64le ARCH=ppc64le
 make all
 make push-images
-cd .. && make manifests
-kubectl create -f _out/manifests/release/kubevirt-operator.yaml
-kubectl create -f _out/manifests/release/kubevirt-cr.yaml
+make manifests
+kubectl apply -f _build/manifests/kubevirt-operator.yaml
+kubectl apply -f _build/manifests/kubevirt-cr.yaml
 kubectl get pods -n kubevirt
 ```
 
@@ -362,15 +360,12 @@ make all
 podman login ${REGISTRY}
 make push-images
 
-# 5. Generate manifests
-cd /root/kubevirt_2025/kubevirt
-export DOCKER_PREFIX=${REGISTRY}
-export DOCKER_TAG=${VERSION}
+# 5. Generate manifests (no Bazel required!)
 make manifests
 
 # 6. Deploy to Kubernetes
-kubectl create -f _out/manifests/release/kubevirt-operator.yaml
-kubectl create -f _out/manifests/release/kubevirt-cr.yaml
+kubectl apply -f _build/manifests/kubevirt-operator.yaml
+kubectl apply -f _build/manifests/kubevirt-cr.yaml
 
 # 7. Verify deployment
 kubectl get pods -n kubevirt -w

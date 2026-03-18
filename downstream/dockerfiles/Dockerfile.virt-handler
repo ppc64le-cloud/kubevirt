@@ -5,7 +5,7 @@
 FROM quay.io/fedora/fedora:42-ppc64le AS build
 
 # Install runtime dependencies for virt-handler (matching handlerbase from rpm/BUILD.bazel)
-RUN dnf install -y --setopt=install_weak_deps=False \
+RUN dnf install -y --setopt=install_weak_deps=False --allowerasing --skip-unavailable \
     acl \
     alternatives \
     audit-libs \
@@ -125,8 +125,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 
 # Create users and groups
 RUN groupadd -g 107 qemu && \
-    useradd -u 107 -g 107 -s /bin/bash -d /home/qemu qemu && \
-    useradd -u 0 -g 0 -s /bin/bash -d /root root
+    useradd -u 107 -g 107 -s /bin/bash -d /home/qemu qemu
 
 # Create nsswitch.conf
 RUN echo "passwd:     files" > /etc/nsswitch.conf && \

@@ -5,7 +5,7 @@
 FROM quay.io/fedora/fedora:42-ppc64le AS build
 
 # Install runtime dependencies for virt-launcher (matching launcherbase from rpm/BUILD.bazel)
-RUN dnf install -y --setopt=install_weak_deps=False \
+RUN dnf install -y --setopt=install_weak_deps=False --allowerasing --skip-unavailable \
     acl \
     alternatives \
     audit-libs \
@@ -200,10 +200,9 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     zstd \
     && dnf clean all
 
-# Create users and groups
-RUN groupadd -g 107 qemu && \
-    useradd -u 107 -g 107 -s /bin/bash -d /home/qemu -m qemu && \
-    useradd -u 0 -g 0 -s /bin/bash -d /root root
+# Create users and groups (if they don't already exist)
+RUN groupadd -g 107 qemu 2>/dev/null || true && \
+    useradd -u 107 -g 107 -s /bin/bash -d /home/qemu -m qemu 2>/dev/null || true
 
 # Create nsswitch.conf
 RUN echo "passwd:     files" > /etc/nsswitch.conf && \
