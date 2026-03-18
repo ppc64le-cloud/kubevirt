@@ -239,28 +239,27 @@ push-images:
 
 .PHONY: manifests
 manifests:
-	@echo "Generating KubeVirt manifests for ppc64le..."
+	@echo "Preparing KubeVirt manifests from upstream..."
+	@chmod +x scripts/prepare-manifests.sh
+	@REGISTRY=$(REGISTRY) VERSION=$(VERSION) OUTPUT_DIR=$(BUILD_DIR)/manifests \
+		./scripts/prepare-manifests.sh
+
+.PHONY: manifests-local
+manifests-local:
+	@echo "Generating KubeVirt manifests from local templates..."
 	@mkdir -p $(BUILD_DIR)/manifests
 	@echo "Generating operator manifest..."
 	@sed -e 's|REGISTRY_PLACEHOLDER|$(REGISTRY)|g' \
 	     -e 's|VERSION_PLACEHOLDER|$(VERSION)|g' \
-	     templates/kubevirt-operator.yaml > $(BUILD_DIR)/manifests/kubevirt-operator.yaml
+	     templates/kubevirt-operator.yaml > $(BUILD_DIR)/manifests/kubevirt-operator-local.yaml
 	@echo "Generating CR manifest..."
 	@sed -e 's|REGISTRY_PLACEHOLDER|$(REGISTRY)|g' \
 	     -e 's|VERSION_PLACEHOLDER|$(VERSION)|g' \
-	     templates/kubevirt-cr.yaml > $(BUILD_DIR)/manifests/kubevirt-cr.yaml
+	     templates/kubevirt-cr.yaml > $(BUILD_DIR)/manifests/kubevirt-cr-local.yaml
 	@echo ""
-	@echo "✓ Manifests generated in $(BUILD_DIR)/manifests/"
-	@echo "  - kubevirt-operator.yaml (Operator deployment)"
-	@echo "  - kubevirt-cr.yaml (KubeVirt CR)"
-	@echo ""
-	@echo "Configuration:"
-	@echo "  Registry: $(REGISTRY)"
-	@echo "  Version:  $(VERSION)"
-	@echo ""
-	@echo "To deploy KubeVirt:"
-	@echo "  kubectl apply -f $(BUILD_DIR)/manifests/kubevirt-operator.yaml"
-	@echo "  kubectl apply -f $(BUILD_DIR)/manifests/kubevirt-cr.yaml"
+	@echo "✓ Local manifests generated in $(BUILD_DIR)/manifests/"
+	@echo "  - kubevirt-operator-local.yaml"
+	@echo "  - kubevirt-cr-local.yaml"
 
 .PHONY: help
 help:
@@ -271,7 +270,8 @@ help:
 	@echo "  build-binaries     - Build all Go binaries"
 	@echo "  build-images       - Build all container images"
 	@echo "  push-images        - Push all images to registry"
-	@echo "  manifests          - Generate deployment manifests"
+	@echo "  manifests          - Download and customize upstream manifests (recommended)"
+	@echo "  manifests-local    - Generate manifests from local templates"
 	@echo "  clean              - Clean build artifacts"
 	@echo ""
 	@echo "Configuration:"
