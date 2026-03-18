@@ -26,13 +26,74 @@ echo "2. Customizing operator manifest..."
 sed -e "s|quay.io/kubevirt/virt-operator:[^ ]*|${REGISTRY}/virt-operator:${VERSION}|g" \
     -e "s|registry:5000/kubevirt/virt-operator:[^ ]*|${REGISTRY}/virt-operator:${VERSION}|g" \
     -e "s|value: quay.io/kubevirt/virt-operator:[^ ]*|value: ${REGISTRY}/virt-operator:${VERSION}|g" \
-    /tmp/kubevirt-operator-upstream.yaml > ${OUTPUT_DIR}/kubevirt-operator.yaml
+    /tmp/kubevirt-operator-upstream.yaml > /tmp/kubevirt-operator-temp.yaml
 
-echo "3. Downloading upstream CR manifest..."
+echo "3. Adding missing RBAC permissions..."
+# Add missing subresources.kubevirt.io permissions to the operator ClusterRole
+cat > /tmp/rbac-patch.yaml << 'EOF'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubevirt-operator-subresources
+  labels:
+    kubevirt.io: ""
+rules:
+  - apiGroups:
+      - subresources.kubevirt.io
+    resources:
+      - virtualmachineinstances/objectgraph
+      - virtualmachines/objectgraph
+      - virtualmachineinstances/usbredir
+      - virtualmachineinstances/reset
+    verbs:
+      - get
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - update
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubevirt-operator-subresources
+  labels:
+    kubevirt.io: ""
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubevirt-operator-subresources
+subjects:
+  - kind: ServiceAccount
+    name: kubevirt-operator
+    namespace: kubevirt
+EOF
+
+# Combine the operator manifest with the RBAC patch
+cat /tmp/kubevirt-operator-temp.yaml /tmp/rbac-patch.yaml > ${OUTPUT_DIR}/kubevirt-operator.yaml
+
+echo "4. Downloading upstream CR manifest..."
 curl -L -s -o /tmp/kubevirt-cr-upstream.yaml \
   "https://github.com/kubevirt/kubevirt/releases/download/${KUBEVIRT_VERSION}/kubevirt-cr.yaml"
 
-echo "4. Customizing CR manifest..."
+echo "5. Customizing CR manifest..."
 # Add imageRegistry and imageTag to the CR
 cat /tmp/kubevirt-cr-upstream.yaml | \
   sed '/^spec:/a\  imageRegistry: '${REGISTRY}'\n  imageTag: '${VERSION} \
