@@ -242,32 +242,21 @@ manifests:
 	@echo "Generating KubeVirt manifests for ppc64le..."
 	@mkdir -p $(BUILD_DIR)/manifests
 	@echo "Generating operator manifest..."
-	@sed -e 's|registry:5000/kubevirt|$(REGISTRY)|g' \
-	     -e 's|:latest|:$(VERSION)|g' \
-	     -e 's|imagePullPolicy: Always|imagePullPolicy: IfNotPresent|g' \
-	     ../manifests/release/kubevirt-operator.yaml.in > $(BUILD_DIR)/manifests/kubevirt-operator.yaml || \
-	     (echo "Warning: kubevirt-operator.yaml.in not found, creating basic manifest" && \
-	      echo "apiVersion: v1" > $(BUILD_DIR)/manifests/kubevirt-operator.yaml && \
-	      echo "kind: Namespace" >> $(BUILD_DIR)/manifests/kubevirt-operator.yaml && \
-	      echo "metadata:" >> $(BUILD_DIR)/manifests/kubevirt-operator.yaml && \
-	      echo "  name: kubevirt" >> $(BUILD_DIR)/manifests/kubevirt-operator.yaml)
+	@sed -e 's|REGISTRY_PLACEHOLDER|$(REGISTRY)|g' \
+	     -e 's|VERSION_PLACEHOLDER|$(VERSION)|g' \
+	     templates/kubevirt-operator.yaml > $(BUILD_DIR)/manifests/kubevirt-operator.yaml
 	@echo "Generating CR manifest..."
-	@sed -e 's|registry:5000/kubevirt|$(REGISTRY)|g' \
-	     -e 's|:latest|:$(VERSION)|g' \
-	     ../manifests/release/kubevirt-cr.yaml.in > $(BUILD_DIR)/manifests/kubevirt-cr.yaml || \
-	     (echo "apiVersion: kubevirt.io/v1" > $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
-	      echo "kind: KubeVirt" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
-	      echo "metadata:" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
-	      echo "  name: kubevirt" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
-	      echo "  namespace: kubevirt" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
-	      echo "spec:" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
-	      echo "  imagePullPolicy: IfNotPresent" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
-	      echo "  imageRegistry: $(REGISTRY)" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml && \
-	      echo "  imageTag: $(VERSION)" >> $(BUILD_DIR)/manifests/kubevirt-cr.yaml)
+	@sed -e 's|REGISTRY_PLACEHOLDER|$(REGISTRY)|g' \
+	     -e 's|VERSION_PLACEHOLDER|$(VERSION)|g' \
+	     templates/kubevirt-cr.yaml > $(BUILD_DIR)/manifests/kubevirt-cr.yaml
 	@echo ""
-	@echo "Manifests generated in $(BUILD_DIR)/manifests/"
-	@echo "  - kubevirt-operator.yaml"
-	@echo "  - kubevirt-cr.yaml"
+	@echo "✓ Manifests generated in $(BUILD_DIR)/manifests/"
+	@echo "  - kubevirt-operator.yaml (Operator deployment)"
+	@echo "  - kubevirt-cr.yaml (KubeVirt CR)"
+	@echo ""
+	@echo "Configuration:"
+	@echo "  Registry: $(REGISTRY)"
+	@echo "  Version:  $(VERSION)"
 	@echo ""
 	@echo "To deploy KubeVirt:"
 	@echo "  kubectl apply -f $(BUILD_DIR)/manifests/kubevirt-operator.yaml"
