@@ -233,7 +233,13 @@ bazeldnf rpmtree \
 
 ### 2.6 Build the Builder Container
 
+**Important:** When building natively on ppc64le, you don't need QEMU. Create a dummy file to skip QEMU setup:
+
 ```bash
+# Skip QEMU setup (not needed for native ppc64le builds)
+sudo mkdir -p /proc/sys/fs/binfmt_misc
+echo 'enabled' | sudo tee /proc/sys/fs/binfmt_misc/qemu-aarch64 > /dev/null
+
 # Build the builder container
 make builder-build
 
