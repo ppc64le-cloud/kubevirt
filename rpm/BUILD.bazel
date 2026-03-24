@@ -42,6 +42,18 @@ bazeldnf(
     tar = ":sandboxroot_s390x_cs10",
 )
 
+bazeldnf(
+    name = "sandbox_ppc64le_cs9",
+    command = "sandbox",
+    tar = ":sandboxroot_ppc64le_cs9",
+)
+
+bazeldnf(
+    name = "sandbox_ppc64le_cs10",
+    command = "sandbox",
+    tar = ":sandboxroot_ppc64le_cs10",
+)
+
 # CentOS Stream 9 ldd targets
 bazeldnf(
     name = "ldd_x86_64_cs9",
@@ -92,6 +104,23 @@ bazeldnf(
     ],
     rpmtree = ":libvirt-devel_s390x_cs9",
     rulename = "libvirt-libs_s390x_cs9",
+)
+
+bazeldnf(
+    name = "ldd_ppc64le_cs9",
+    command = "ldd",
+    libs = [
+        "/usr/lib64/libvirt-admin.so.0",
+        "/usr/lib64/libvirt-lxc.so.0",
+        "/usr/lib64/libvirt-qemu.so.0",
+        "/usr/lib64/libvirt.so.0",
+        "/usr/lib64/libkrb5support.so.0",
+        "/usr/lib64/libkeyutils.so.1",
+        "/usr/lib64/liblz4.so.1",
+        "/usr/lib64/libmount.so.1",
+    ],
+    rpmtree = ":libvirt-devel_ppc64le_cs9",
+    rulename = "libvirt-libs_ppc64le_cs9",
 )
 
 # CentOS Stream 10 ldd targets
@@ -149,6 +178,24 @@ bazeldnf(
     rulename = "libvirt-libs_s390x_cs10",
 )
 
+bazeldnf(
+    name = "ldd_ppc64le_cs10",
+    command = "ldd",
+    libs = [
+        "/usr/lib64/libvirt-admin.so.0",
+        "/usr/lib64/libvirt-lxc.so.0",
+        "/usr/lib64/libvirt-qemu.so.0",
+        "/usr/lib64/libvirt.so.0",
+        "/usr/lib64/libfido2.so.1",
+        "/usr/lib64/libkrb5support.so.0",
+        "/usr/lib64/libkeyutils.so.1",
+        "/usr/lib64/liblz4.so.1",
+        "/usr/lib64/libmount.so.1",
+    ],
+    rpmtree = ":libvirt-devel_ppc64le_cs10",
+    rulename = "libvirt-libs_ppc64le_cs10",
+)
+
 # CentOS Stream 9 ldd targets for libnbd
 bazeldnf(
     name = "ldd_libnbd_x86_64_cs9",
@@ -180,6 +227,16 @@ bazeldnf(
     rulename = "libnbd-libs_s390x_cs9",
 )
 
+bazeldnf(
+    name = "ldd_libnbd_ppc64le_cs9",
+    command = "ldd",
+    libs = [
+        "/usr/lib64/libnbd.so.0",
+    ],
+    rpmtree = ":libnbd-devel_ppc64le_cs9",
+    rulename = "libnbd-libs_ppc64le_cs9",
+)
+
 # CentOS Stream 10 ldd targets for libnbd
 bazeldnf(
     name = "ldd_libnbd_x86_64_cs10",
@@ -209,6 +266,16 @@ bazeldnf(
     ],
     rpmtree = ":libnbd-devel_s390x_cs10",
     rulename = "libnbd-libs_s390x_cs10",
+)
+
+bazeldnf(
+    name = "ldd_libnbd_ppc64le_cs10",
+    command = "ldd",
+    libs = [
+        "/usr/lib64/libnbd.so.0",
+    ],
+    rpmtree = ":libnbd-devel_ppc64le_cs10",
+    rulename = "libnbd-libs_ppc64le_cs10",
 )
 
 # CentOS Stream version-selecting aliases
@@ -278,6 +345,13 @@ centos_stream_alias(
 )
 
 centos_stream_alias(
+    name = "libvirt-libs_ppc64le",
+    cs10_target = ":libvirt-libs_ppc64le_cs10",
+    cs9_target = ":libvirt-libs_ppc64le_cs9",
+    visibility = ["//visibility:public"],
+)
+
+centos_stream_alias(
     name = "sandboxroot_x86_64",
     cs10_target = ":sandboxroot_x86_64_cs10",
     cs9_target = ":sandboxroot_x86_64_cs9",
@@ -295,6 +369,13 @@ centos_stream_alias(
     name = "sandboxroot_s390x",
     cs10_target = ":sandboxroot_s390x_cs10",
     cs9_target = ":sandboxroot_s390x_cs9",
+    visibility = ["//visibility:public"],
+)
+
+centos_stream_alias(
+    name = "sandboxroot_ppc64le",
+    cs10_target = ":sandboxroot_ppc64le_cs10",
+    cs9_target = ":sandboxroot_ppc64le_cs9",
     visibility = ["//visibility:public"],
 )
 
