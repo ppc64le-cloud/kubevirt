@@ -47,3 +47,7 @@ repositories:
   baseurl: https://mirror.stream.centos.org/10-stream/CRB/ppc64le/os/
   name: centos/stream10-crb-ppc64le
   gpgkey: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official
+- arch: ppc64le
+  baseurl: https://mirror.stream.centos.org/SIGs/10/virt/ppc64le/kvm-power/
+  name: centos/stream10-virt-ppc64le
+  gpgkey: https://www.centos.org/keys/RPM-GPG-KEY-CentOS-Official
