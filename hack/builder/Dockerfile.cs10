@@ -132,21 +132,10 @@ COPY entrypoint.sh /entrypoint.sh
 
 COPY create_bazel_cache_rcs.sh /create_bazel_cache_rcs.sh
 
-# For ppc64le, copy local bazel binary (no official release available)
-# For other archs except s390x, download from GitHub
-RUN if test "${ARCH}" = "ppc64le"; then \
-       echo "Using local bazel binary for ppc64le"; \
-    elif test "${ARCH}" != "s390x"; then \
+# Install bazel for all architectures except s390x
+RUN if test "${ARCH}" != "s390x"; then \
        curl -L -o /usr/bin/bazel https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-linux-${BAZEL_ARCH} && \
        chmod u+x /usr/bin/bazel; \
-    fi
-
-# Copy bazel for ppc64le after the conditional check
-COPY bazel-ppc64le /usr/bin/bazel-temp
-RUN if test "${ARCH}" = "ppc64le" && test -f /usr/bin/bazel-temp; then \
-       mv /usr/bin/bazel-temp /usr/bin/bazel && chmod u+x /usr/bin/bazel; \
-    else \
-       rm -f /usr/bin/bazel-temp; \
     fi
 
 # Add /root/go/src/kubevirt.io/kubevirt and mark it as a safe directory for git
