@@ -5,7 +5,7 @@
 FROM quay.io/fedora/fedora:42-ppc64le AS build
 
 # Install runtime dependencies for virt-handler (matching handlerbase from rpm/BUILD.bazel)
-RUN dnf install -y --setopt=install_weak_deps=False --allowerasing --skip-unavailable \
+RUN dnf install -y --setopt=install_weak_deps=False \
     acl \
     alternatives \
     audit-libs \
@@ -47,7 +47,6 @@ RUN dnf install -y --setopt=install_weak_deps=False --allowerasing --skip-unavai
     libcap-ng \
     libcom_err \
     libcurl-minimal \
-    libdb \
     libeconf \
     libfdisk \
     libffi \
@@ -68,7 +67,6 @@ RUN dnf install -y --setopt=install_weak_deps=False --allowerasing --skip-unavai
     libselinux-utils \
     libsemanage \
     libsepol \
-    libsigsegv \
     libsmartcols \
     libtasn1 \
     libunistring \
@@ -94,7 +92,6 @@ RUN dnf install -y --setopt=install_weak_deps=False --allowerasing --skip-unavai
     p11-kit-trust \
     pam \
     passt \
-    pcre \
     pcre2 \
     pcre2-syntax \
     policycoreutils \
@@ -120,7 +117,7 @@ RUN dnf install -y --setopt=install_weak_deps=False --allowerasing --skip-unavai
     vim-minimal \
     xorriso \
     xz-libs \
-    zlib \
+    zlib-ng-compat \
     && dnf clean all
 
 # Create users and groups
