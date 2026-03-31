@@ -41,7 +41,6 @@ toolchain(
     toolchain = "py_runtime_pair",
     toolchain_type = "@bazel_tools//tools/python:toolchain_type",
 )
-
 goimports(
     name = "goimports",
     display_diffs = True,
@@ -129,11 +128,13 @@ cc_library(
     name = "libvirt-libs",
     srcs = select({
         "@io_bazel_rules_go//go/platform:linux_arm64": ["//rpm:libvirt-libs_aarch64/usr/lib64"],
+        "@io_bazel_rules_go//go/platform:linux_ppc64le": ["//rpm:libvirt-libs_ppc64le/usr/lib64"],
         "@io_bazel_rules_go//go/platform:linux_s390x": ["//rpm:libvirt-libs_s390x/usr/lib64"],
         "//conditions:default": ["//rpm:libvirt-libs_x86_64/usr/lib64"],
     }),
     hdrs = select({
         "@io_bazel_rules_go//go/platform:linux_arm64": ["//rpm:libvirt-libs_aarch64/usr/include/libvirt"],
+        "@io_bazel_rules_go//go/platform:linux_ppc64le": ["//rpm:libvirt-libs_ppc64le/usr/include/libvirt"],
         "@io_bazel_rules_go//go/platform:linux_s390x": ["//rpm:libvirt-libs_s390x/usr/include/libvirt"],
         "//conditions:default": ["//rpm:libvirt-libs_x86_64/usr/include/libvirt"],
     }),
@@ -142,9 +143,11 @@ cc_library(
         # CentOS Stream 10 combinations
         "//rpm:x86_64_cs10": "/rpm/libvirt-libs_x86_64_cs10/usr/include/",
         "//rpm:aarch64_cs10": "/rpm/libvirt-libs_aarch64_cs10/usr/include/",
+        "//rpm:ppc64le_cs10": "/rpm/libvirt-libs_ppc64le_cs10/usr/include/",
         "//rpm:s390x_cs10": "/rpm/libvirt-libs_s390x_cs10/usr/include/",
         # CentOS Stream 9 combinations (default)
         "//rpm:aarch64_cs9": "/rpm/libvirt-libs_aarch64_cs9/usr/include/",
+        "//rpm:ppc64le_cs9": "/rpm/libvirt-libs_ppc64le_cs9/usr/include/",
         "//rpm:s390x_cs9": "/rpm/libvirt-libs_s390x_cs9/usr/include/",
         "//conditions:default": "/rpm/libvirt-libs_x86_64_cs9/usr/include/",
     }),
@@ -155,11 +158,13 @@ cc_library(
     name = "libnbd-libs",
     srcs = select({
         "@io_bazel_rules_go//go/platform:linux_arm64": ["//rpm:libnbd-libs_aarch64/usr/lib64"],
+        "@io_bazel_rules_go//go/platform:linux_ppc64le": ["//rpm:libnbd-libs_ppc64le/usr/lib64"],
         "@io_bazel_rules_go//go/platform:linux_s390x": ["//rpm:libnbd-libs_s390x/usr/lib64"],
         "//conditions:default": ["//rpm:libnbd-libs_x86_64/usr/lib64"],
     }),
     hdrs = select({
         "@io_bazel_rules_go//go/platform:linux_arm64": ["//rpm:libnbd-libs_aarch64/usr/include"],
+        "@io_bazel_rules_go//go/platform:linux_ppc64le": ["//rpm:libnbd-libs_ppc64le/usr/include"],
         "@io_bazel_rules_go//go/platform:linux_s390x": ["//rpm:libnbd-libs_s390x/usr/include"],
         "//conditions:default": ["//rpm:libnbd-libs_x86_64/usr/include"],
     }),
@@ -168,9 +173,11 @@ cc_library(
         # CentOS Stream 10 combinations
         "//rpm:x86_64_cs10": "/rpm/libnbd-libs_x86_64_cs10/usr/include/",
         "//rpm:aarch64_cs10": "/rpm/libnbd-libs_aarch64_cs10/usr/include/",
+        "//rpm:ppc64le_cs10": "/rpm/libnbd-libs_ppc64le_cs10/usr/include/",
         "//rpm:s390x_cs10": "/rpm/libnbd-libs_s390x_cs10/usr/include/",
         # CentOS Stream 9 combinations (default)
         "//rpm:aarch64_cs9": "/rpm/libnbd-libs_aarch64_cs9/usr/include/",
+        "//rpm:ppc64le_cs9": "/rpm/libnbd-libs_ppc64le_cs9/usr/include/",
         "//rpm:s390x_cs9": "/rpm/libnbd-libs_s390x_cs9/usr/include/",
         "//conditions:default": "/rpm/libnbd-libs_x86_64_cs9/usr/include/",
     }),

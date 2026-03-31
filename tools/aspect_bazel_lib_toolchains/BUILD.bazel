@@ -1,0 +1,64 @@
+# Custom toolchain definitions for aspect_bazel_lib tools on ppc64le
+# These use system binaries since aspect_bazel_lib doesn't provide ppc64le prebuilts
+
+load("@aspect_bazel_lib//lib/private:copy_to_directory_toolchain.bzl", "copy_to_directory_toolchain")
+load("@aspect_bazel_lib//lib/private:coreutils_toolchain.bzl", "coreutils_toolchain")
+load("@aspect_bazel_lib//lib/private:jq_toolchain.bzl", "jq_toolchain")
+load("@aspect_bazel_lib//lib/private:zstd_toolchain.bzl", "zstd_toolchain")
+
+# Export system binaries
+exports_files([
+    "zstd",
+    "tar",
+    "coreutils",
+    "jq",
+    "copy_to_directory",
+])
+
+# zstd toolchain for ppc64le
+zstd_toolchain(
+    name = "zstd_toolchain_impl",
+    binary = ":zstd",
+)
+
+toolchain(
+    name = "zstd_toolchain",
+    toolchain = ":zstd_toolchain_impl",
+    toolchain_type = "@aspect_bazel_lib//lib:zstd_toolchain_type",
+)
+
+# coreutils toolchain for ppc64le (uses coreutils symlink to tar)
+coreutils_toolchain(
+    name = "coreutils_toolchain_impl",
+    binary = ":coreutils",
+)
+
+toolchain(
+    name = "coreutils_toolchain",
+    toolchain = ":coreutils_toolchain_impl",
+    toolchain_type = "@aspect_bazel_lib//lib:coreutils_toolchain_type",
+)
+
+# jq toolchain for ppc64le
+jq_toolchain(
+    name = "jq_toolchain_impl",
+    bin = ":jq",
+)
+
+toolchain(
+    name = "jq_toolchain",
+    toolchain = ":jq_toolchain_impl",
+    toolchain_type = "@aspect_bazel_lib//lib:jq_toolchain_type",
+)
+
+# copy_to_directory toolchain for ppc64le
+copy_to_directory_toolchain(
+    name = "copy_to_directory_toolchain_impl",
+    bin = ":copy_to_directory",
+)
+
+toolchain(
+    name = "copy_to_directory_toolchain",
+    toolchain = ":copy_to_directory_toolchain_impl",
+    toolchain_type = "@aspect_bazel_lib//lib:copy_to_directory_toolchain_type",
+)

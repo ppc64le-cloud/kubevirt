@@ -21,6 +21,20 @@ http_archive(
     ],
 )
 
+# aspect_bazel_lib is required by rules_oci for toolchains (zstd, coreutils, jq)
+http_archive(
+    name = "aspect_bazel_lib",
+    sha256 = "f8ea96b0151bf90b0330662cb02361849c642ebd5bbaeed84b361883b267117d",
+    strip_prefix = "bazel-lib-2.7.7",
+    urls = [
+        "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v2.7.7.tar.gz",
+    ],
+)
+
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
+
+aspect_bazel_lib_dependencies()
+
 http_archive(
     name = "package_metadata",
     sha256 = "5bd0cc7594ea528fd28f98d82457f157827d48cc20e07bcfdbb56072f35c8f67",
@@ -49,6 +63,23 @@ load("@rules_oci//oci:repositories.bzl", "oci_register_toolchains")
 
 oci_register_toolchains(
     name = "oci",
+)
+
+# Register aspect_bazel_lib toolchains for zstd, coreutils, jq
+load("@aspect_bazel_lib//lib:repositories.bzl", "register_coreutils_toolchains", "register_jq_toolchains", "register_zstd_toolchains")
+
+register_coreutils_toolchains()
+
+register_jq_toolchains()
+
+register_zstd_toolchains()
+
+# Register custom ppc64le toolchains for aspect_bazel_lib tools
+register_toolchains(
+    "//tools/aspect_bazel_lib_toolchains:zstd_toolchain",
+    "//tools/aspect_bazel_lib_toolchains:coreutils_toolchain",
+    "//tools/aspect_bazel_lib_toolchains:jq_toolchain",
+    "//tools/aspect_bazel_lib_toolchains:copy_to_directory_toolchain",
 )
 
 load("@rules_oci//oci:pull.bzl", "oci_pull")
@@ -248,8 +279,11 @@ load(
 
 bazeldnf_dependencies()
 
-bazeldnf_register_toolchains(
-    name = "bazeldnf_prebuilt",
+# Register custom toolchains for ppc64le architecture
+# Only bazeldnf and regctl use proper toolchain mechanism
+register_toolchains(
+    "//tools/bazeldnf:bazeldnf_toolchain",
+    "//tools/regctl:regctl_toolchain",
 )
 
 go_rules_dependencies()

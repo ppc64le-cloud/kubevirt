@@ -1,0 +1,9 @@
+# Custom coreutils toolchain for ppc64le
+exports_files(["coreutils"])
+
+# Simple wrapper - just export the binary
+filegroup(
+    name = "coreutils_toolchain",
+    srcs = [":coreutils"],
+    visibility = ["//visibility:public"],
+)

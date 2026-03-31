@@ -1,0 +1,10 @@
+# Custom zstd toolchain for ppc64le
+exports_files(["zstd"])
+
+# Simple wrapper - just export the binary
+# The toolchain type expects a file target
+filegroup(
+    name = "zstd_toolchain",
+    srcs = [":zstd"],
+    visibility = ["//visibility:public"],
+)

@@ -401,6 +401,13 @@ centos_stream_alias(
 )
 
 centos_stream_alias(
+    name = "launcherbase_ppc64le",
+    cs10_target = ":launcherbase_ppc64le_cs10",
+    cs9_target = ":launcherbase_ppc64le_cs10",  # No CS9 target, use CS10
+    visibility = ["//visibility:public"],
+)
+
+centos_stream_alias(
     name = "handlerbase_x86_64",
     cs10_target = ":handlerbase_x86_64_cs10",
     cs9_target = ":handlerbase_x86_64_cs9",
@@ -539,6 +546,20 @@ centos_stream_alias(
     cs10_target = ":libvirt-libs_aarch64_cs10/usr/include/libvirt",
     cs9_target = ":libvirt-libs_aarch64_cs9/usr/include/libvirt",
     visibility = ["//visibility:public"],
+
+centos_stream_alias(
+    name = "libvirt-libs_ppc64le/usr/lib64",
+    cs10_target = ":libvirt-libs_ppc64le_cs10/usr/lib64",
+    cs9_target = ":libvirt-libs_ppc64le_cs9/usr/lib64",
+    visibility = ["//visibility:public"],
+)
+
+centos_stream_alias(
+    name = "libvirt-libs_ppc64le/usr/include/libvirt",
+    cs10_target = ":libvirt-libs_ppc64le_cs10/usr/include/libvirt",
+    cs9_target = ":libvirt-libs_ppc64le_cs9/usr/include/libvirt",
+    visibility = ["//visibility:public"],
+)
 )
 
 centos_stream_alias(
@@ -581,6 +602,20 @@ centos_stream_alias(
     name = "libnbd-libs_aarch64/usr/include",
     cs10_target = ":libnbd-libs_aarch64_cs10/usr/include",
     cs9_target = ":libnbd-libs_aarch64_cs9/usr/include",
+
+centos_stream_alias(
+    name = "libnbd-libs_ppc64le/usr/lib64",
+    cs10_target = ":libnbd-libs_ppc64le_cs10/usr/lib64",
+    cs9_target = ":libnbd-libs_ppc64le_cs9/usr/lib64",
+    visibility = ["//visibility:public"],
+)
+
+centos_stream_alias(
+    name = "libnbd-libs_ppc64le/usr/include",
+    cs10_target = ":libnbd-libs_ppc64le_cs10/usr/include",
+    cs9_target = ":libnbd-libs_ppc64le_cs9/usr/include",
+    visibility = ["//visibility:public"],
+)
     visibility = ["//visibility:public"],
 )
 
@@ -772,6 +807,40 @@ tar2files(
         ],
     },
     tar = ":libnbd-devel_x86_64_cs10",
+    visibility = ["//visibility:public"],
+)
+
+tar2files(
+    name = "libnbd-libs_ppc64le_cs10",
+    files = {
+        "/usr/include": ["libnbd.h"],
+        "/usr/lib64": [
+            "ld64.so.2",
+            "libc.so.6",
+            "libffi.so.8",
+            "libffi.so.8.1.2",
+            "libgnutls.so.30",
+            "libgnutls.so.30.40.4",
+            "libidn2.so.0",
+            "libidn2.so.0.4.0",
+            "liblzma.so.5",
+            "liblzma.so.5.6.2",
+            "libm.so.6",
+            "libnbd.so.0",
+            "libnbd.so.0.0.0",
+            "libp11-kit.so.0",
+            "libp11-kit.so.0.4.8",
+            "libtasn1.so.6",
+            "libtasn1.so.6.6.4",
+            "libunistring.so.5",
+            "libunistring.so.5.0.0",
+            "libxml2.so.2",
+            "libxml2.so.2.12.5",
+            "libz.so.1",
+            "libz.so.1.3.1.zlib-ng",
+        ],
+    },
+    tar = ":libnbd-devel_ppc64le_cs10",
     visibility = ["//visibility:public"],
 )
 

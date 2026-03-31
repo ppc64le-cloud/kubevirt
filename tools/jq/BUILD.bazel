@@ -1,0 +1,9 @@
+# Custom jq toolchain for ppc64le
+exports_files(["jq"])
+
+# Simple wrapper - just export the binary
+filegroup(
+    name = "jq_toolchain",
+    srcs = [":jq"],
+    visibility = ["//visibility:public"],
+)

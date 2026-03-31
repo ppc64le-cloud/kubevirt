@@ -1,9 +1,11 @@
 load(":cc_toolchain_config.bzl", "cc_toolchain_config")
+load(":cc_toolchain_config_cs10.bzl", "cc_toolchain_config_cs10")
 
 package(default_visibility = ["//visibility:public"])
 
 filegroup(name = "empty")
 
+# CentOS Stream 9 toolchain (GCC 11)
 cc_toolchain_config(name = "ppc64le_toolchain_config")
 
 cc_toolchain(
@@ -18,6 +20,21 @@ cc_toolchain(
     toolchain_identifier = "ppc64le-toolchain",
 )
 
+# CentOS Stream 10 toolchain (GCC 14)
+cc_toolchain_config_cs10(name = "ppc64le_toolchain_config_cs10")
+
+cc_toolchain(
+    name = "ppc64le_toolchain_cs10",
+    all_files = ":empty",
+    compiler_files = ":empty",
+    dwp_files = ":empty",
+    linker_files = ":empty",
+    objcopy_files = ":empty",
+    strip_files = ":empty",
+    toolchain_config = ":ppc64le_toolchain_config_cs10",
+    toolchain_identifier = "ppc64le-toolchain-cs10",
+)
+
 cc_toolchain_suite(
     name = "gcc_toolchain",
     tags = ["manual"],
@@ -26,6 +43,7 @@ cc_toolchain_suite(
     },
 )
 
+# CS9 toolchain - for cross-compilation from x86_64
 toolchain(
     name = "ppc64le_linux_toolchain",
     exec_compatible_with = [
@@ -37,5 +55,20 @@ toolchain(
         "@platforms//cpu:ppc",
     ],
     toolchain = ":ppc64le_toolchain",
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+)
+
+# CS10 toolchain - default for native ppc64le builds
+toolchain(
+    name = "ppc64le_linux_toolchain_cs10",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:ppc64le",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:ppc64le",
+    ],
+    toolchain = ":ppc64le_toolchain_cs10",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )

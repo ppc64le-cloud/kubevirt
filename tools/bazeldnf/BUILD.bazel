@@ -1,0 +1,17 @@
+# Custom bazeldnf toolchain for ppc64le using locally built binary
+load("@bazeldnf//bazeldnf:toolchain.bzl", "bazeldnf_toolchain")
+
+# Export the locally built bazeldnf binary
+exports_files(["bazeldnf"])
+
+bazeldnf_toolchain(
+    name = "bazeldnf_toolchain_impl",
+    tool = ":bazeldnf",
+)
+
+toolchain(
+    name = "bazeldnf_toolchain",
+    toolchain = ":bazeldnf_toolchain_impl",
+    toolchain_type = "@bazeldnf//bazeldnf:toolchain_type",
+    visibility = ["//visibility:public"],
+)
