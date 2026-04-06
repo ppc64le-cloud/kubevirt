@@ -18,7 +18,6 @@ package arch
 
 import (
 	"kubevirt.io/client-go/log"
-	"kubevirt.io/kubevirt/pkg/virt-launcher/virtwrap/api"
 
 	v1 "kubevirt.io/api/core/v1"
 
