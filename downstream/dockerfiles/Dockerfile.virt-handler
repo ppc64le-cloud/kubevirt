@@ -5,7 +5,7 @@
 FROM quay.io/fedora/fedora:42-ppc64le AS build
 
 # Install runtime dependencies for virt-handler (matching handlerbase from rpm/BUILD.bazel)
-RUN dnf install -y --setopt=install_weak_deps=False \
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
     acl \
     alternatives \
     audit-libs \
@@ -86,7 +86,6 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     nftables \
     numactl-libs \
     openssl \
-    openssl-fips-provider \
     openssl-libs \
     p11-kit \
     p11-kit-trust \
