@@ -212,8 +212,8 @@ RUN echo "passwd:     files" > /etc/nsswitch.conf && \
 RUN mkdir -p /etc/libvirt
 
 # Copy libvirt configuration files
-COPY ../cmd/virt-launcher/qemu.conf /etc/libvirt/qemu.conf
-COPY ../cmd/virt-launcher/virtqemud.conf /etc/libvirt/virtqemud.conf
+COPY cmd/virt-launcher/qemu.conf /etc/libvirt/qemu.conf
+COPY cmd/virt-launcher/virtqemud.conf /etc/libvirt/virtqemud.conf
 
 # Copy binaries
 COPY _build/bin/virt-launcher /usr/bin/virt-launcher
@@ -224,7 +224,7 @@ COPY _build/bin/virt-launcher-monitor /usr/bin/virt-launcher-monitor
 COPY _build/bin/container-disk /usr/bin/container-disk
 
 # Copy node-labeller script
-COPY ../cmd/virt-launcher/node-labeller/node-labeller.sh /usr/bin/node-labeller.sh
+COPY cmd/virt-launcher/node-labeller/node-labeller.sh /usr/bin/node-labeller.sh
 
 # Set permissions
 RUN chmod +x /usr/bin/virt-launcher \

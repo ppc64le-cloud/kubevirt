@@ -209,10 +209,10 @@ build-virt-handler-image: build-virt-handler build-virt-chroot
 .PHONY: build-virt-launcher-image
 build-virt-launcher-image: build-virt-launcher build-virt-freezer build-virt-probe build-virt-tail build-virt-launcher-monitor build-container-disk
 	@echo "Preparing virt-launcher build context..."
-	@mkdir -p downstream/cmd/virt-launcher/node-labeller
-	@cp cmd/virt-launcher/qemu.conf downstream/cmd/virt-launcher/
-	@cp cmd/virt-launcher/virtqemud.conf downstream/cmd/virt-launcher/
-	@cp cmd/virt-launcher/node-labeller/node-labeller.sh downstream/cmd/virt-launcher/node-labeller/
+	@mkdir -p cmd/virt-launcher/node-labeller
+	@cp ../cmd/virt-launcher/qemu.conf cmd/virt-launcher/
+	@cp ../cmd/virt-launcher/virtqemud.conf cmd/virt-launcher/
+	@cp ../cmd/virt-launcher/node-labeller/node-labeller.sh cmd/virt-launcher/node-labeller/
 	@echo "Building virt-launcher image for $(ARCH)..."
 	podman build --platform=linux/$(ARCH) -t $(VIRT_LAUNCHER_IMAGE) -f dockerfiles/Dockerfile.virt-launcher .
 
