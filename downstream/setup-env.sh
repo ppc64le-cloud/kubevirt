@@ -54,4 +54,3 @@ echo ""
 echo "Ready to build! Run: make all"
 echo ""
 
-# Made with Bob

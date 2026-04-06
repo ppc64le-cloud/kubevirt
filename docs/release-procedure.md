@@ -141,7 +141,6 @@ to a stable branch. An example:
 git checkout release-0.6
 git cherry-pick $THE_MERGE_COMMIT_ID -m 1 -sx
 [release-0.6 acd756040] Merge pull request #1234 from great_person
- Author: Bob Builder <builder@bob.com>
  Date: Thu Jun 28 17:50:05 2018 +0300
  5 files changed, 55 insertions(+), 22 deletions(-)
 git push $YOUR_REMOTE release-0.6:release-0.6-aParticularFix

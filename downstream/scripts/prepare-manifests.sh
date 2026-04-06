@@ -121,4 +121,3 @@ echo "To monitor deployment:"
 echo "  kubectl get pods -n kubevirt -w"
 echo ""
 
-# Made with Bob
