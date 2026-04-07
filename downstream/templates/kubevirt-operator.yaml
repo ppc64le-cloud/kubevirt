@@ -125,6 +125,22 @@ rules:
   - patch
   - update
 - apiGroups:
+  - kubevirt.io
+  resources:
+  - kubevirts/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - subresources.kubevirt.io
+  resources:
+  - version
+  - guestfs
+  verbs:
+  - get
+  - list
+- apiGroups:
   - ""
   resources:
   - serviceaccounts
