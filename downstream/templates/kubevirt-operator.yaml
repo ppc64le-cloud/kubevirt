@@ -478,14 +478,14 @@ spec:
         - virt-operator
         env:
         - name: VIRT_OPERATOR_IMAGE
-          value: quay.io/kubevirt/virt-operator:v1.8.1
+          value: REGISTRY_PLACEHOLDER/virt-operator:VERSION_PLACEHOLDER
         - name: WATCH_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.annotations['olm.targetNamespaces']
         - name: KUBEVIRT_VERSION
-          value: v1.8.1
-        image: quay.io/kubevirt/virt-operator:v1.8.1
+          value: VERSION_PLACEHOLDER
+        image: REGISTRY_PLACEHOLDER/virt-operator:VERSION_PLACEHOLDER
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
