@@ -7,6 +7,68 @@ metadata:
     pod-security.kubernetes.io/enforce: "privileged"
   name: kubevirt
 ---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    operator.kubevirt.io: ""
+  name: kubevirts.kubevirt.io
+spec:
+  group: kubevirt.io
+  names:
+    categories:
+    - all
+    kind: KubeVirt
+    plural: kubevirts
+    shortNames:
+    - kv
+    - kvs
+    singular: kubevirt
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: KubeVirt represents the object deploying all KubeVirt resources
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+          status:
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
@@ -40,273 +102,319 @@ rules:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: kubevirt-operator
-  namespace: kubevirt
   labels:
     kubevirt.io: ""
+  name: kubevirt-operator
+  namespace: kubevirt
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: kubevirt-operator
   labels:
-    operator.kubevirt.io: ""
     kubevirt.io: ""
+  name: kubevirt-operator
 rules:
-  - apiGroups:
-      - kubevirt.io
-    resources:
-      - kubevirts
-    verbs:
-      - get
-      - list
-      - watch
-      - patch
-      - update
-      - patch
-  - apiGroups:
-      - ""
-    resources:
-      - serviceaccounts
-      - services
-      - endpoints
-      - pods/exec
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - delete
-      - patch
-  - apiGroups:
-      - coordination.k8s.io
-    resources:
-      - leases
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - delete
-      - patch
-  - apiGroups:
-      - admissionregistration.k8s.io
-    resources:
-      - validatingadmissionpolicies
-      - validatingadmissionpolicybindings
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - update
-      - delete
-      - patch
-  - apiGroups:
-      - batch
-    resources:
-      - jobs
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - patch
-  - apiGroups:
-      - apps
-    resources:
-      - deployments
-      - daemonsets
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - patch
-  - apiGroups:
-      - rbac.authorization.k8s.io
-    resources:
-      - clusterroles
-      - clusterrolebindings
-      - roles
-      - rolebindings
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - patch
-      - update
-  - apiGroups:
-      - apiextensions.k8s.io
-    resources:
-      - customresourcedefinitions
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - patch
-  - apiGroups:
-      - security.openshift.io
-    resources:
-      - securitycontextconstraints
-    verbs:
-      - create
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - security.openshift.io
-    resourceNames:
-      - privileged
-    resources:
-      - securitycontextconstraints
-    verbs:
-      - get
-      - patch
-      - update
-  - apiGroups:
-      - admissionregistration.k8s.io
-    resources:
-      - validatingwebhookconfigurations
-      - mutatingwebhookconfigurations
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - update
-      - patch
-  - apiGroups:
-      - apiregistration.k8s.io
-    resources:
-      - apiservices
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - update
-      - patch
-  - apiGroups:
-      - monitoring.coreos.com
-    resources:
-      - servicemonitors
-      - prometheusrules
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - update
-      - patch
-  - apiGroups:
-      - ""
-    resources:
-      - namespaces
-    verbs:
-      - get
-      - list
-      - watch
-      - patch
-  - apiGroups:
-      - ""
-    resources:
-      - pods
-    verbs:
-      - get
-      - list
-      - delete
-      - patch
-  - apiGroups:
-      - kubevirt.io
-    resources:
-      - virtualmachines
-      - virtualmachineinstances
-    verbs:
-      - get
-      - list
-      - watch
-      - patch
-      - update
-  - apiGroups:
-      - ""
-    resources:
-      - persistentvolumeclaims
-    verbs:
-      - get
-  - apiGroups:
-      - ""
-    resources:
-      - configmaps
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - secrets
-    verbs:
-      - create
-      - get
-      - list
-      - watch
-      - patch
-      - delete
-  - apiGroups:
-      - snapshot.kubevirt.io
-    resources:
-      - '*'
-    verbs:
-      - '*'
-  - apiGroups:
-      - pool.kubevirt.io
-    resources:
-      - virtualmachinepools
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - migrations.kubevirt.io
-    resources:
-      - migrationpolicies
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - instancetype.kubevirt.io
-    resources:
-      - '*'
-    verbs:
-      - '*'
+- apiGroups:
+  - kubevirt.io
+  resources:
+  - kubevirts
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
+  - services
+  - endpoints
+  - pods/exec
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - patch
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - patch
+- apiGroups:
+  - apps
+  resources:
+  - controllerrevisions
+  verbs:
+  - watch
+  - list
+  - create
+  - delete
+  - patch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - patch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterroles
+  - clusterrolebindings
+  - roles
+  - rolebindings
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - patch
+  - update
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - patch
+- apiGroups:
+  - security.openshift.io
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - privileged
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - kubevirt-handler
+  - kubevirt-controller
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - delete
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  - mutatingwebhookconfigurations
+  - validatingadmissionpolicybindings
+  - validatingadmissionpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - update
+  - patch
+- apiGroups:
+  - apiregistration.k8s.io
+  resources:
+  - apiservices
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - update
+  - patch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  - prometheusrules
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
+  - resource.k8s.io
+  resources:
+  - resourceclaims
+  - resourceslices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kubevirt-operator
   labels:
     kubevirt.io: ""
+  name: kubevirt-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: kubevirt-operator
 subjects:
-  - kind: ServiceAccount
-    name: kubevirt-operator
-    namespace: kubevirt
+- kind: ServiceAccount
+  name: kubevirt-operator
+  namespace: kubevirt
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    kubevirt.io: ""
+  name: kubevirt-operator
+  namespace: kubevirt
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - kubevirt-ca
+  - kubevirt-export-ca
+  - kubevirt-backup-ca
+  - kubevirt-virt-handler-certs
+  - kubevirt-virt-handler-server-certs
+  - kubevirt-virt-handler-migration-client-certs
+  - kubevirt-virt-handler-vsock-client-certs
+  - kubevirt-operator-certs
+  - kubevirt-virt-api-certs
+  - kubevirt-controller-certs
+  - kubevirt-exportproxy-certs
+  - kubevirt-synchronization-controller-certs
+  - kubevirt-synchronization-controller-server-certs
+  - kubevirt-virt-template-api-certs
+  - kubevirt-virt-template-webhook-certs
+  - kubevirt-virt-template-controller-metrics-certs
+  resources:
+  - secrets
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - patch
+  - delete
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - patch
+  - delete
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes/custom-host
+  verbs:
+  - create
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - delete
+  - update
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    kubevirt.io: ""
+  name: kubevirt-operator-rolebinding
+  namespace: kubevirt
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kubevirt-operator
+subjects:
+- kind: ServiceAccount
+  name: kubevirt-operator
+  namespace: kubevirt
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -324,12 +432,31 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      annotations:
+        openshift.io/required-scc: restricted-v2
       labels:
         kubevirt.io: virt-operator
+        name: virt-operator
+        np.kubevirt.io/allow-access-cluster-services: "true"
         prometheus.kubevirt.io: "true"
       name: virt-operator
     spec:
       affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: DoesNotExist
+            weight: 100
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: Exists
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - podAffinityTerm:
@@ -342,21 +469,31 @@ spec:
               topologyKey: kubernetes.io/hostname
             weight: 1
       containers:
-      - command:
-        - virt-operator
+      - args:
         - --port
         - "8443"
         - -v
         - "2"
+        command:
+        - virt-operator
         env:
-        - name: OPERATOR_IMAGE
-          value: REGISTRY_PLACEHOLDER/virt-operator:VERSION_PLACEHOLDER
+        - name: VIRT_OPERATOR_IMAGE
+          value: quay.io/kubevirt/virt-operator:v1.8.1
         - name: WATCH_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.annotations['olm.targetNamespaces']
-        image: REGISTRY_PLACEHOLDER/virt-operator:VERSION_PLACEHOLDER
+        - name: KUBEVIRT_VERSION
+          value: v1.8.1
+        image: quay.io/kubevirt/virt-operator:v1.8.1
         imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 5
+          timeoutSeconds: 10
         name: virt-operator
         ports:
         - containerPort: 8443
@@ -383,6 +520,15 @@ spec:
             - ALL
           seccompProfile:
             type: RuntimeDefault
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /etc/virt-operator/certificates
+          name: kubevirt-operator-certs
+          readOnly: true
+        - mountPath: /profile-data
+          name: profile-data
+      nodeSelector:
+        kubernetes.io/os: linux
       priorityClassName: kubevirt-cluster-critical
       securityContext:
         runAsNonRoot: true
@@ -392,4 +538,18 @@ spec:
       tolerations:
       - key: CriticalAddonsOnly
         operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      volumes:
+      - name: kubevirt-operator-certs
+        secret:
+          optional: true
+          secretName: kubevirt-operator-certs
+      - emptyDir: {}
+        name: profile-data
 
+# Made with Bob
