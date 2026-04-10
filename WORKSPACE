@@ -75,12 +75,14 @@ register_jq_toolchains()
 register_zstd_toolchains()
 
 # Register custom ppc64le toolchains for aspect_bazel_lib tools
-register_toolchains(
-    "//tools/aspect_bazel_lib_toolchains:zstd_toolchain",
-    "//tools/aspect_bazel_lib_toolchains:coreutils_toolchain",
-    "//tools/aspect_bazel_lib_toolchains:jq_toolchain",
-    "//tools/aspect_bazel_lib_toolchains:copy_to_directory_toolchain",
-)
+# Commented out for cross-compilation - using standard toolchains from aspect_bazel_lib
+# These custom toolchains are only needed when building ON ppc64le, not cross-compiling TO ppc64le
+# register_toolchains(
+#     "//tools/aspect_bazel_lib_toolchains:zstd_toolchain",
+#     "//tools/aspect_bazel_lib_toolchains:coreutils_toolchain",
+#     "//tools/aspect_bazel_lib_toolchains:jq_toolchain",
+#     "//tools/aspect_bazel_lib_toolchains:copy_to_directory_toolchain",
+# )
 
 load("@rules_oci//oci:pull.bzl", "oci_pull")
 
@@ -279,10 +281,12 @@ load(
 
 bazeldnf_dependencies()
 
+bazeldnf_register_toolchains()
+
 # Register custom toolchains for ppc64le architecture
-# Only bazeldnf and regctl use proper toolchain mechanism
+# Only regctl uses proper toolchain mechanism
 register_toolchains(
-    "//tools/bazeldnf:bazeldnf_toolchain",
+    # "//tools/bazeldnf:bazeldnf_toolchain",  # Commented out - using standard bazeldnf toolchain
     "//tools/regctl:regctl_toolchain",
 )
 
@@ -304,8 +308,6 @@ load(
 )
 
 gazelle_dependencies(go_sdk = "go_sdk")
-
-bazeldnf_dependencies()
 
 # Winrmcli dependencies
 go_repository(
