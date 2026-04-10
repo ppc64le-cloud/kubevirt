@@ -546,6 +546,7 @@ centos_stream_alias(
     cs10_target = ":libvirt-libs_aarch64_cs10/usr/include/libvirt",
     cs9_target = ":libvirt-libs_aarch64_cs9/usr/include/libvirt",
     visibility = ["//visibility:public"],
+)
 
 centos_stream_alias(
     name = "libvirt-libs_ppc64le/usr/lib64",
@@ -559,7 +560,6 @@ centos_stream_alias(
     cs10_target = ":libvirt-libs_ppc64le_cs10/usr/include/libvirt",
     cs9_target = ":libvirt-libs_ppc64le_cs9/usr/include/libvirt",
     visibility = ["//visibility:public"],
-)
 )
 
 centos_stream_alias(
@@ -602,6 +602,8 @@ centos_stream_alias(
     name = "libnbd-libs_aarch64/usr/include",
     cs10_target = ":libnbd-libs_aarch64_cs10/usr/include",
     cs9_target = ":libnbd-libs_aarch64_cs9/usr/include",
+    visibility = ["//visibility:public"],
+)
 
 centos_stream_alias(
     name = "libnbd-libs_ppc64le/usr/lib64",
@@ -614,8 +616,6 @@ centos_stream_alias(
     name = "libnbd-libs_ppc64le/usr/include",
     cs10_target = ":libnbd-libs_ppc64le_cs10/usr/include",
     cs9_target = ":libnbd-libs_ppc64le_cs9/usr/include",
-    visibility = ["//visibility:public"],
-)
     visibility = ["//visibility:public"],
 )
 

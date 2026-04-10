@@ -130,27 +130,13 @@ COPY entrypoint.sh /entrypoint.sh
 
 COPY create_bazel_cache_rcs.sh /create_bazel_cache_rcs.sh
 
-# Copy local bazel binary for ppc64le if it exists in the build context
-COPY bazel-ppc64le* /tmp/
-COPY bazel-wrapper.sh /tmp/
-
 # Install Bazel based on architecture
-RUN if test "${ARCH}" = "ppc64le" && test -f "/tmp/bazel-ppc64le"; then \
-       # Use local bazel binary for ppc64le
-       cp /tmp/bazel-ppc64le /usr/bin/bazel && chmod +x /usr/bin/bazel; \
-    elif test "${ARCH}" != "s390x" && test "${ARCH}" != "ppc64le"; then \
+RUN if test "${ARCH}" != "s390x" && test "${ARCH}" != "ppc64le"; then \
        # Download pre-built Bazel for amd64 and arm64
        curl -L -o /usr/bin/bazel https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-linux-${BAZEL_ARCH} && \
        chmod u+x /usr/bin/bazel; \
     else \
-       echo "WARNING: No bazel binary available for ${ARCH}"; \
-    fi
-
-# Install bazel wrapper for ppc64le to work around config parsing bug
-RUN if test "${ARCH}" = "ppc64le" && test -f "/usr/bin/bazel"; then \
-       mv /usr/bin/bazel /usr/bin/bazel.real && \
-       cp /tmp/bazel-wrapper.sh /usr/bin/bazel && \
-       chmod +x /usr/bin/bazel; \
+       echo "WARNING: No pre-built bazel binary available for ${ARCH}. Bazel must be installed separately or built from source."; \
     fi
 
 # Add /root/go/src/kubevirt.io/kubevirt and mark it as a safe directory for git
