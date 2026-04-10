@@ -1011,6 +1011,7 @@ tar2files(
     },
     tar = ":libvirt-devel_aarch64_cs10",
     visibility = ["//visibility:public"],
+)
 
 tar2files(
     name = "libvirt-libs_ppc64le_cs10",
@@ -1141,7 +1142,6 @@ tar2files(
     },
     tar = ":libvirt-devel_ppc64le_cs10",
     visibility = ["//visibility:public"],
-)
 )
 
 tar2files(
