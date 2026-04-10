@@ -281,7 +281,9 @@ load(
 
 bazeldnf_dependencies()
 
-bazeldnf_register_toolchains()
+bazeldnf_register_toolchains(
+    name = "bazeldnf_prebuilt",
+)
 
 # Register custom toolchains for ppc64le architecture
 # Only regctl uses proper toolchain mechanism
