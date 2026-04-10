@@ -63,11 +63,11 @@ toolchain(
     name = "ppc64le_linux_toolchain_cs10",
     exec_compatible_with = [
         "@platforms//os:linux",
-        "@platforms//cpu:ppc64le",
+        "@platforms//cpu:ppc",
     ],
     target_compatible_with = [
         "@platforms//os:linux",
-        "@platforms//cpu:ppc64le",
+        "@platforms//cpu:ppc",
     ],
     toolchain = ":ppc64le_toolchain_cs10",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
