@@ -28,7 +28,7 @@ def centos_stream_config_settings():
     )
     native.config_setting(
         name = "linux_ppc64le",
-        constraint_values = ["@platforms//cpu:ppc64le", "@platforms//os:linux"],
+        constraint_values = ["@platforms//cpu:ppc", "@platforms//os:linux"],
     )
 
     # Compound config_setting_groups for platform + centos_stream combinations
