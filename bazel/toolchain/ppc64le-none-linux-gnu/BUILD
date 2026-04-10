@@ -58,16 +58,19 @@ toolchain(
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
-# CS10 toolchain - default for native ppc64le builds
+# CS10 toolchain - selected when centos_stream_version=10
 toolchain(
     name = "ppc64le_linux_toolchain_cs10",
     exec_compatible_with = [
         "@platforms//os:linux",
-        "@platforms//cpu:ppc",
+        "@platforms//cpu:x86_64",
     ],
     target_compatible_with = [
         "@platforms//os:linux",
         "@platforms//cpu:ppc",
+    ],
+    target_settings = [
+        "//rpm:is_cs10",
     ],
     toolchain = ":ppc64le_toolchain_cs10",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
